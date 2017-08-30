@@ -8,14 +8,22 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat">
-        <activity android:name=".ListaActivity"
-            android:launchMode="standard">
+        android:theme="@style/LaListaTheme">
+        <activity
+            android:name=".presentation.ListaActivity"
+            android:label="@string/app_name"
+            android:theme="@style/LaListaTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".debug.DebugAllEntries" />
+        <activity
+            android:name=".debug.DebugActivity"
+            android:label="@string/title_activity_debug"
+            android:theme="@style/LaListaTheme"></activity>
     </application>
 
 </manifest>

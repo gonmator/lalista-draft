@@ -1,5 +1,7 @@
 package com.example.gonmator.lalista_draft.model;
 
+import com.example.gonmator.lalista_draft.model.Attributes;
+
 import java.util.UUID;
 
 /**
