@@ -6,13 +6,13 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -24,12 +24,9 @@ import com.example.gonmator.lalista_draft.model.LaListaDbHelper;
 import com.example.gonmator.lalista_draft.model.Lista;
 
 import java.util.Collection;
-import java.util.Stack;
-
-import static android.R.attr.id;
 
 public class ListaActivity extends AppCompatActivity
-        implements EditListDialogFragment.AddItemDialogListener, ListaAdapter.ListaAdapterListener,
+        implements EditListDialogFragment.AddItemDialogListener, /*ListaAdapter.ListaAdapterListener,*/
         ConfigmDialogFragment.ConfirmDialogListener {
 
     enum Mode {
@@ -40,9 +37,7 @@ public class ListaActivity extends AppCompatActivity
     private LaListaDbHelper mDbHelper = null;
     private long mRootId = -1;
     private long mCurrentId = -1;
-    private Lista mCurrentLista = null;
     private int mDeep = 0;
-    View mEditToolbar = null;
     Mode mMode = Mode.listView;
     Menu mAppMenu = null;
 
@@ -75,6 +70,7 @@ public class ListaActivity extends AppCompatActivity
         }
     }
 
+/*
     // ListaAdapterListener interface
     @Override
     public void onSubitemsButtonClick(long id, AdapterView<?> parent) {
@@ -83,9 +79,10 @@ public class ListaActivity extends AppCompatActivity
         if (parent == null) {
             updateList();
         } else {
-            updateList((ListView) parent);
+            updateList((RecyclerView)parent);
         }
     }
+*/
 
     // Activity
     @Override
@@ -119,7 +116,8 @@ public class ListaActivity extends AppCompatActivity
         });
 
         // list view
-        final ListView listView = (ListView)findViewById(R.id.listView);
+        final RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
+/*
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
@@ -144,9 +142,9 @@ public class ListaActivity extends AppCompatActivity
                 return true;
             }
         });
+*/
 
-        CursorAdapter listAdapter = new ListaAdapter(
-                this, R.layout.row_lista, R.id.textView, R.id.subitemsButton, null, this);
+        RecyclerView.Adapter listAdapter = new ListaAdapter(this, R.layout.row_lista, null);
         listView.setAdapter(listAdapter);
         updateList(listView);
     }
@@ -242,11 +240,11 @@ public class ListaActivity extends AppCompatActivity
     }
 
     void newList(String description) {
-        ListView listView = (ListView)findViewById(R.id.listView);
+        RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
         newList(description, listView);
     }
 
-    void newList(String description, ListView listView) {
+    void newList(String description, RecyclerView listView) {
         if (description.length() > 0) {
             Lista lista = new Lista(description);
             mDbHelper.createLista(lista, mCurrentId);
@@ -267,10 +265,10 @@ public class ListaActivity extends AppCompatActivity
     }
 
     void updateList() {
-        updateList((ListView)findViewById(R.id.listView));
+        updateList((RecyclerView)findViewById(R.id.listView));
     }
 
-    void updateList(ListView listView) {
+    void updateList(RecyclerView listView) {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             if (mCurrentId != mRootId) {
@@ -284,7 +282,7 @@ public class ListaActivity extends AppCompatActivity
         }
         listView.setElevation(mDeep + 2);
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
-        CursorAdapter adapter = (CursorAdapter)listView.getAdapter();
+        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
         adapter.changeCursor(childs);
     }
 

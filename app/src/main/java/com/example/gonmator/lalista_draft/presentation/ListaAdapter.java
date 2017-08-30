@@ -2,36 +2,35 @@ package com.example.gonmator.lalista_draft.presentation;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.CursorAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.gonmator.lalista_draft.R;
 import com.example.gonmator.lalista_draft.model.LaListaContract;
 
-import java.util.AbstractCollection;
 import java.util.Collection;
 
 /**
  * Created by gonmator on 03.05.17.
  */
 
-public class ListaAdapter extends CursorAdapter {
+public class ListaAdapter extends RecyclerView.Adapter {
 
     interface ListaAdapterListener {
         public void onSubitemsButtonClick(long position, AdapterView<?> parent);
     }
 
-    private LayoutInflater mCursorInflater;
+    private Cursor mCursor;
+    private int mIdColumn;
+    private int mDescriptionColumn;
+    private LayoutInflater mInflater;
     private int mLayoutId;
     private int mDescriptionViewId;
     private int mSubitemsButtonId;
@@ -39,56 +38,70 @@ public class ListaAdapter extends CursorAdapter {
     private ArraySet<Long> mSelected;
     private boolean mEditMode;
 
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        RowViewHolder viewHolder = new RowViewHolder(mInflater.inflate(mLayoutId, parent, false));
+        return viewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        RowViewHolder viewHolder = (RowViewHolder)holder;
+        if (mCursor != null) {
+            mCursor.moveToPosition(position);
+            final long id = mCursor.getLong(mIdColumn);
+            if (mEditMode && mSelected.contains(id)) {
+                viewHolder.setBackgroundResource(R.color.colorAccent);
+            } else {
+                viewHolder.setBackgroundResource(R.color.colorBackground);
+            }
+            viewHolder.setDescriptionText(mCursor.getString(mDescriptionColumn));
+            if (mEditMode) {
+                viewHolder.setSubitemsButtonVisibility(View.VISIBLE);
+    /*
+                subitemsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        mListener.onSubitemsButtonClick(id, null);
+                    }
+                });
+    */
+            } else {
+                viewHolder.setSubitemsButtonVisibility(View.GONE);
+            }
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return mCursor.getCount();
+    }
+
     public ListaAdapter(
-            @NonNull Context context, @LayoutRes int layoutId, int descriptionViewId,
-            int subitemsButtonId, Cursor cursor, ListaAdapterListener listener) {
-        super(context, cursor, FLAG_REGISTER_CONTENT_OBSERVER);
-        mCursorInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            @NonNull Context context, @LayoutRes int layoutId, Cursor cursor) {
+        super();
+        mCursor = null;
+        changeCursor(cursor);
+        mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mLayoutId = layoutId;
-        mDescriptionViewId = descriptionViewId;
-        mSubitemsButtonId = subitemsButtonId;
-        mListener = listener;
+        mListener = null;
         mSelected = new ArraySet<>();
         mEditMode = false;
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        final int position_ = position;
-        final AdapterView<?> parent_ = (AdapterView<?>) parent;
-        View view = super.getView(position, convertView, parent);
-        return view;
-    }
-
-    @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        return mCursorInflater.inflate(mLayoutId, parent, false);
-    }
-
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        final long id = cursor.getLong(cursor.getColumnIndex(LaListaContract.Lista._ID));
-        if (mEditMode && mSelected.contains(id)) {
-            view.setBackgroundResource(R.color.colorAccent);
-        } else {
-            view.setBackgroundResource(R.color.colorBackground);
+    public void changeCursor(Cursor cursor) {
+        synchronized (this) {
+            if (mCursor != null) {
+                mCursor.close();
+            }
+            mCursor = cursor;
+            if (mCursor != null) {
+                mIdColumn = cursor.getColumnIndex(LaListaContract.Lista._ID);
+                mDescriptionColumn = cursor.getColumnIndex(
+                        LaListaContract.Lista.COLUMN_NAME_DESCRIPTION);
+            }
         }
-        TextView descriptionView = (TextView)view.findViewById(mDescriptionViewId);
-        String description = cursor.getString(cursor.getColumnIndex(
-                LaListaContract.Lista.COLUMN_NAME_DESCRIPTION));
-        descriptionView.setText(description);
-        View subitemsButton = view.findViewById(mSubitemsButtonId);
-        if (mEditMode) {
-            subitemsButton.setVisibility(View.VISIBLE);
-            subitemsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mListener.onSubitemsButtonClick(id, null);
-                }
-            });
-        } else {
-            subitemsButton.setVisibility(View.GONE);
-        }
+        notifyDataSetChanged();
     }
 
     public void clearSelected() {

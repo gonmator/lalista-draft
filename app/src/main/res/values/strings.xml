@@ -15,4 +15,5 @@
     <string name="title_notifications">Notifications</string>
     <string name="title_activity_debug_activiry">DebugActiviry</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="lista_layout_manager_class">LinearLayoutManager</string>
 </resources>

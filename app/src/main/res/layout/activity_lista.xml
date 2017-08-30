@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -33,12 +34,13 @@
 -->
 
 
+<!--
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="150dp"
         android:background="@color/appbar_dark"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
+-->
 
         <!--
         <android.support.constraint.ConstraintLayout
@@ -47,21 +49,17 @@
             android:background="@color/appbar_dark">
 -->
 
-        <ListView
+        <android.support.v7.widget.RecyclerView
             android:id="@+id/listView"
             android:layout_width="match_parent"
-            android:layout_height="400dp"
+            android:layout_height="match_parent"
             android:layout_margin="8dp"
-            android:choiceMode="none"
-            android:divider="@color/colorPrimaryDark"
-            android:dividerHeight="1dp"
             android:elevation="2dp"
-            app:layout_constraintBottom_toTopOf="@+id/editBox"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:scrollbars="vertical"
+            app:layoutManager="@string/lista_layout_manager_class"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:listitem="@layout/row_lista" />
 
-    </android.support.v4.widget.NestedScrollView>
     <android.support.constraint.ConstraintLayout
         android:id="@+id/editBox"
         android:layout_width="0dp"
