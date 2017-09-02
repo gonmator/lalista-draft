@@ -12,7 +12,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,7 +25,7 @@ import com.example.gonmator.lalista_draft.model.Lista;
 import java.util.Collection;
 
 public class ListaActivity extends AppCompatActivity
-        implements EditListDialogFragment.AddItemDialogListener, /*ListaAdapter.ListaAdapterListener,*/
+        implements EditListDialogFragment.AddItemDialogListener, ListaAdapter.Listener,
         ConfigmDialogFragment.ConfirmDialogListener {
 
     enum Mode {
@@ -41,50 +40,9 @@ public class ListaActivity extends AppCompatActivity
     Mode mMode = Mode.listView;
     Menu mAppMenu = null;
 
-    // AddItemDialogListener interface
-    @Override
-    public void onDialogTextDone(String text) {
-        newList(text);
-    }
-
-    // ConfirmDialogListener interface
-    @Override
-    public void onConfirmedClick(String tag, Bundle context) {
-        if (tag.equals("delete_list") && context != null) {
-            if (context.containsKey("id")) {
-                long id = context.getLong("id");
-                if (BuildConfig.DEBUG && id != mCurrentId) {
-                    throw new AssertionError("id expected to be the same as mCurrentId");
-                }
-                deleteList(id);
-            } else if (context.containsKey("ids")) {
-                long[] ids = context.getLongArray("ids");
-                for (long id: ids) {
-                    deleteList(id);
-                }
-                ListView listView = (ListView)findViewById(R.id.listView);
-                ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-                adapter.clearSelected();
-                adapter.notifyDataSetChanged();
-            }
-        }
-    }
-
-/*
-    // ListaAdapterListener interface
-    @Override
-    public void onSubitemsButtonClick(long id, AdapterView<?> parent) {
-        mCurrentId = id;
-        mDeep++;
-        if (parent == null) {
-            updateList();
-        } else {
-            updateList((RecyclerView)parent);
-        }
-    }
-*/
 
     // Activity
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,20 +75,8 @@ public class ListaActivity extends AppCompatActivity
 
         // list view
         final RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-/*
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                if (mMode == Mode.listView) {
-                    onSubitemsButtonClick(id, adapterView);
-                } else if (mMode == Mode.edit) {
-                    ListaAdapter adapter = (ListaAdapter)adapterView.getAdapter();
-                    adapter.changeSelectListaId(id);
-                    adapter.notifyDataSetChanged();
-                }
-            }
-        });
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+/*        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(
                     AdapterView<?> adapterView, View view, int position, long id) {
@@ -144,7 +90,7 @@ public class ListaActivity extends AppCompatActivity
         });
 */
 
-        RecyclerView.Adapter listAdapter = new ListaAdapter(this, R.layout.row_lista, null);
+        RecyclerView.Adapter listAdapter = new ListaAdapter(this, this, R.layout.row_lista, null);
         listView.setAdapter(listAdapter);
         updateList(listView);
     }
@@ -270,17 +216,22 @@ public class ListaActivity extends AppCompatActivity
 
     void updateList(RecyclerView listView) {
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            if (mCurrentId != mRootId) {
-                Lista lista = mDbHelper.getLista(mCurrentId);
-                actionBar.setTitle(lista.getDescription());
+        Toolbar listTitle = (Toolbar)findViewById(R.id.listTitle);
+        if (mCurrentId != mRootId) {
+            if (actionBar != null) {
                 actionBar.setDisplayHomeAsUpEnabled(true);
-            } else {
-                actionBar.setTitle(R.string.app_name);
+            }
+            if (listTitle != null) {
+                listTitle.setTitle(mDbHelper.getLista(mCurrentId).getDescription());
+            }
+        } else {
+            if (actionBar != null) {
                 actionBar.setDisplayHomeAsUpEnabled(false);
             }
+            if (listTitle != null) {
+                listTitle.setTitle(R.string.app_name);
+            }
         }
-        listView.setElevation(mDeep + 2);
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
         adapter.changeCursor(childs);
@@ -288,7 +239,7 @@ public class ListaActivity extends AppCompatActivity
 
     void setMode(Mode mode) {
         mMode = mode;
-        ListView listView = (ListView)findViewById(R.id.listView);
+        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
         adapter.setEditMode(mode == Mode.edit);
         adapter.notifyDataSetChanged();
@@ -297,10 +248,53 @@ public class ListaActivity extends AppCompatActivity
 
     void setEditModeAndSelect(int id) {
         mMode = Mode.edit;
-        ListView listView = (ListView)findViewById(R.id.listView);
+        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
         adapter.setEditMode(true);
         adapter.notifyDataSetChanged();
         invalidateOptionsMenu();
+    }
+
+
+    // AddItemDialogListener interface
+
+    @Override
+    public void onDialogTextDone(String text) {
+        newList(text);
+    }
+
+
+    // ConfirmDialogListener interface
+
+    @Override
+    public void onConfirmedClick(String tag, Bundle context) {
+        if (tag.equals("delete_list") && context != null) {
+            if (context.containsKey("id")) {
+                long id = context.getLong("id");
+                if (BuildConfig.DEBUG && id != mCurrentId) {
+                    throw new AssertionError("id expected to be the same as mCurrentId");
+                }
+                deleteList(id);
+            } else if (context.containsKey("ids")) {
+                long[] ids = context.getLongArray("ids");
+                for (long id: ids) {
+                    deleteList(id);
+                }
+                ListView listView = (ListView)findViewById(R.id.listView);
+                ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
+                adapter.clearSelected();
+                adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+
+    // ListaAdapter.Listener interface
+
+    @Override
+    public void onSubitemsButtonClick(long id) {
+        mCurrentId = id;
+        mDeep++;
+        updateList();
     }
 }

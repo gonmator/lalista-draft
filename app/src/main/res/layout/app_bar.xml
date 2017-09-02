@@ -6,15 +6,38 @@
     android:layout_height="128dp"
     >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_height="?attr/actionBarSize"
+    <android.support.design.widget.CollapsingToolbarLayout
+        android:id="@+id/toolbarBox"
         android:layout_width="match_parent"
-        android:background="@color/appbar_dark"
-        android:elevation="4dp"
+        android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:toolbarId="@+id/toolbar"
+        app:layout_scrollFlags="scroll|snap|enterAlways|enterAlwaysCollapsed"
+        app:contentScrim="?attr/colorPrimary"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         >
-    </android.support.v7.widget.Toolbar>
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_height="56dp"
+            android:layout_width="match_parent"
+            android:background="@color/appbar_dark"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            >
+        </android.support.v7.widget.Toolbar>
+
+    </android.support.design.widget.CollapsingToolbarLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/listTitle"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="@color/appbar_dark"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_scrollFlags="snap"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        />
 
 </android.support.design.widget.AppBarLayout>
