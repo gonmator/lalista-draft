@@ -78,6 +78,8 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
     public void onRowClick(RowViewHolder viewHolder) {
         if (!mEditMode) {
             mListener.onSubitemsButtonClick(viewHolder.getListaId());
+        } else {
+            toggleSelected(viewHolder);
         }
     }
 
@@ -85,6 +87,8 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
     public void onTextViewClick(RowViewHolder viewHolder) {
         if (!mEditMode) {
             mListener.onSubitemsButtonClick(viewHolder.getListaId());
+        } else {
+            onRowClick(viewHolder);
         }
     }
 
@@ -127,11 +131,14 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
         mSelected.clear();
     }
 
-    public void changeSelectListaId(long id) {
+    public void toggleSelected(RowViewHolder viewHolder) {
+        long id = viewHolder.getListaId();
         if (mSelected.contains(id)) {
             mSelected.remove(id);
+            viewHolder.setBackgroundResource(R.color.colorBackground);
         } else {
             mSelected.add(id);
+            viewHolder.setBackgroundResource(R.color.colorAccent);
         }
     }
 
