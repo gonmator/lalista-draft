@@ -43,6 +43,13 @@ public class ListaActivity extends AppCompatActivity
     // Activity
 
     @Override
+    public void onBackPressed() {
+        if (!goBack()) {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lista);
@@ -57,9 +64,15 @@ public class ListaActivity extends AppCompatActivity
         //  app bar
         Toolbar appBar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(appBar);
+        Toolbar listTitle = (Toolbar)findViewById(R.id.listTitle);
+        listTitle.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goBack();
+            }
+        });
 
         // menu
-
 
         // edit text
         EditText editText = (EditText)findViewById(R.id.editText);
@@ -74,21 +87,6 @@ public class ListaActivity extends AppCompatActivity
 
         // list view
         final RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-
-/*        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(
-                    AdapterView<?> adapterView, View view, int position, long id) {
-                if (mMode == Mode.listView) {
-                    ListaAdapter adapter = (ListaAdapter)adapterView.getAdapter();
-                    adapter.selectListaId(id, true);
-                    setMode(Mode.edit);
-                }
-                return true;
-            }
-        });
-*/
-
         RecyclerView.Adapter listAdapter = new ListaAdapter(this, this, R.layout.row_lista, null);
         listView.setAdapter(listAdapter);
         updateList(listView);
@@ -174,14 +172,19 @@ public class ListaActivity extends AppCompatActivity
         confirmDialog.show(getSupportFragmentManager(), "delete_list");
     }
 
-    void goBack() {
+    boolean goBack() {
+        boolean rv = true;
         long parent = mDbHelper.getParentIdOfLista(mCurrentId);
         if (parent != -1) {
             mCurrentId = parent;
         } else {
+            rv = mCurrentId != mRootId;
             mCurrentId = mRootId;
         }
-        updateList();
+        if (rv) {
+            updateList();
+        }
+        return rv;
     }
 
     void newList(String description) {
@@ -217,17 +220,21 @@ public class ListaActivity extends AppCompatActivity
         ActionBar actionBar = getSupportActionBar();
         Toolbar listTitle = (Toolbar)findViewById(R.id.listTitle);
         if (mCurrentId != mRootId) {
+/*
             if (actionBar != null) {
                 actionBar.setDisplayHomeAsUpEnabled(true);
             }
+*/
             if (listTitle != null) {
                 listTitle.setTitle(mDbHelper.getLista(mCurrentId).getDescription());
                 listTitle.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
             }
         } else {
+/*
             if (actionBar != null) {
                 actionBar.setDisplayHomeAsUpEnabled(false);
             }
+*/
             if (listTitle != null) {
                 listTitle.setTitle(R.string.app_name);
                 listTitle.setNavigationIcon(null);

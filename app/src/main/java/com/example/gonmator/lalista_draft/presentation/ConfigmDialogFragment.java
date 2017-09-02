@@ -44,6 +44,12 @@ public class ConfigmDialogFragment extends AppCompatDialogFragment {
                 dismiss();
             }
         });
+        builder.setNegativeButton(R.string.action_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dismiss();
+            }
+        });
 
         return builder.create();
     }
