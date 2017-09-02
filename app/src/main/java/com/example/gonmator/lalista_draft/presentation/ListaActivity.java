@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.gonmator.lalista_draft.BuildConfig;
@@ -106,7 +105,7 @@ public class ListaActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        ListView listView;
+        RecyclerView listView;
         ListaAdapter adapter;
 
         switch (item.getItemId()) {
@@ -126,7 +125,7 @@ public class ListaActivity extends AppCompatActivity
                     confirmDelete(mCurrentId);
                     return true;
                 } else if (mMode == Mode.edit) {
-                    listView = (ListView)findViewById(R.id.listView);
+                    listView = (RecyclerView)findViewById(R.id.listView);
                     adapter = (ListaAdapter)listView.getAdapter();
                     Collection<Long> selected = adapter.getSelectedIds();
                     confirmDelete(selected);
@@ -223,6 +222,7 @@ public class ListaActivity extends AppCompatActivity
             }
             if (listTitle != null) {
                 listTitle.setTitle(mDbHelper.getLista(mCurrentId).getDescription());
+                listTitle.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
             }
         } else {
             if (actionBar != null) {
@@ -230,6 +230,7 @@ public class ListaActivity extends AppCompatActivity
             }
             if (listTitle != null) {
                 listTitle.setTitle(R.string.app_name);
+                listTitle.setNavigationIcon(null);
             }
         }
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
@@ -280,7 +281,7 @@ public class ListaActivity extends AppCompatActivity
                 for (long id: ids) {
                     deleteList(id);
                 }
-                ListView listView = (ListView)findViewById(R.id.listView);
+                RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
                 ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
                 adapter.clearSelected();
                 adapter.notifyDataSetChanged();
