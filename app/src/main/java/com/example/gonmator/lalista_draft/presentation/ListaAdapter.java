@@ -9,7 +9,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 
 import com.example.gonmator.lalista_draft.R;
 import com.example.gonmator.lalista_draft.model.LaListaContract;
@@ -52,16 +51,14 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
             mCursor.moveToPosition(position);
             final long id = mCursor.getLong(mIdColumn);
             viewHolder.setListaId(id);
-            if (mEditMode && mSelected.contains(id)) {
-                viewHolder.setBackgroundResource(R.color.colorAccent);
-            } else {
-                viewHolder.setBackgroundResource(R.color.colorBackground);
-            }
+            viewHolder.setSelectedState(mEditMode && mSelected.contains(id));
             viewHolder.setDescriptionText(mCursor.getString(mDescriptionColumn));
             if (mEditMode) {
                 viewHolder.setSubitemsButtonVisibility(View.VISIBLE);
+                viewHolder.selectEditText();
             } else {
                 viewHolder.setSubitemsButtonVisibility(View.GONE);
+                viewHolder.selectTextView();
             }
         }
     }
@@ -110,6 +107,7 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
         mLayoutId = layoutId;
         mSelected = new ArraySet<>();
         mEditMode = false;
+        setHasStableIds(true);
     }
 
     public void changeCursor(Cursor cursor) {
@@ -135,10 +133,10 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
         long id = viewHolder.getListaId();
         if (mSelected.contains(id)) {
             mSelected.remove(id);
-            viewHolder.setBackgroundResource(R.color.colorBackground);
+            viewHolder.setSelectedState(false);
         } else {
             mSelected.add(id);
-            viewHolder.setBackgroundResource(R.color.colorAccent);
+            viewHolder.setSelectedState(true);
         }
     }
 
@@ -146,18 +144,14 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
         return mSelected;
     }
 
-    public void selectListaId(long listaId, boolean state) {
-        if (state) {
-            mSelected.add(listaId);
-        } else {
-            mSelected.remove(listaId);
-        }
-    }
-
     public void setEditMode(boolean editMode) {
+        boolean prevEditMode = mEditMode;
         mEditMode = editMode;
-        if (!editMode) {
-            mSelected.clear();
+        if (prevEditMode != editMode) {
+            if (!editMode) {
+                mSelected.clear();
+            }
+            notifyItemRangeChanged(0, getItemCount());
         }
     }
 }

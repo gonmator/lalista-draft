@@ -7,30 +7,32 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="4dp"
     android:layout_marginStart="4dp"
-    android:layout_marginEnd="4dp"
+    android:layout_marginEnd="3dp"
     android:minHeight="48dp"
     android:checkMark="?android:attr/listChoiceIndicatorMultiple"
     android:background="@drawable/list_selector_read"
-    android:descendantFocusability="blocksDescendants"
+    android:descendantFocusability="afterDescendants"
     android:elevation="4dp"
     android:gravity="fill_horizontal"
     android:orientation="horizontal"
     tools:context="com.example.gonmator.lalista_draft.presentation.ListaActivity">
 
     <ImageButton
-        android:id="@+id/moveButton"
+        android:id="@+id/selectButton"
+        android:background="@android:color/transparent"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginBottom="4dp"
-        android:layout_marginEnd="2dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
+        android:src="@drawable/select_button_selector"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
+<!--    <ImageButton
         android:id="@+id/deployButton"
         android:layout_width="32dp"
         android:layout_height="32dp"
@@ -41,7 +43,7 @@
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@+id/moveButton"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />-->
 
     <TextView
         android:id="@+id/textView"
@@ -54,9 +56,10 @@
         android:fontFamily="roboto-regular"
         android:paddingTop="4dp"
         android:textSize="16sp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toRightOf="@+id/deployButton"
+        app:layout_constraintLeft_toRightOf="@+id/selectButton"
         app:layout_constraintRight_toLeftOf="@+id/subitemsButton"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5"
@@ -64,9 +67,34 @@
         app:layout_goneMarginEnd="8dp"
         />
 
+    <EditText
+        android:id="@+id/editItem"
+        android:background="@android:color/transparent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:fontFamily="roboto-regular"
+        android:imeOptions="actionGo"
+        android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
+        android:paddingTop="4dp"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toRightOf="@+id/selectButton"
+        app:layout_constraintRight_toLeftOf="@+id/subitemsButton"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5"
+        app:layout_goneMarginEnd="8dp"
+        app:layout_goneMarginStart="8dp"
+        />
+
     <ImageButton
         android:id="@+id/subitemsButton"
-        android:background="#00000000"
+        android:background="@android:color/transparent"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginBottom="4dp"

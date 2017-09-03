@@ -2,7 +2,6 @@ package com.example.gonmator.lalista_draft.model;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -141,6 +140,13 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         return c;
     }
 
+    public List<Long> getIdOfAncestors(long id) {
+        List<Long> ancestors = new Vector<Long>();
+        SQLiteDatabase db = getReadableDatabase();
+        feedUpAncestors(db, id, ancestors);
+        return ancestors;
+    }
+
     public Lista getLista(long id) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor c = db.query(TABLE_LISTA, LISTA_COLUMNS, ID_SELECTION,
@@ -201,21 +207,9 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         return c;
     }
 
-    public long getParentIdOfLista(long id) {
+    public long getParentId(long id) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.query(TABLE_LISTA, PARENT_ID_COLUMNS, ID_SELECTION,
-                new String[]{String.valueOf(id)}, null, null, null, "1");
-        if (c != null) {
-            try {
-                c.moveToFirst();
-                if (!c.isAfterLast()) {
-                    return c.getLong(0);
-                }
-            } finally {
-                c.close();
-            }
-        }
-        return -1;
+        return getParentOf(db, id);
     }
 
     public void updateLista(Lista lista) {
@@ -227,11 +221,11 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         db.update(TABLE_LISTA, values, KEY_LID_SELECTION, new String[] { lista.getLidStr() });
     }
 
-    public long deleteLista(long id) {
+    public int deleteLista(long id) {
         SQLiteDatabase db = getWritableDatabase();
         return deleteLista(db, id);
     }
-    public long deleteLista(String lid) {
+    public int deleteLista(String lid) {
         SQLiteDatabase db = getWritableDatabase();
         long id = getIndex(db, lid);
         return deleteLista(id);
@@ -248,52 +242,32 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_LISTA, null, values);
     }
 
-    private long deleteLista(SQLiteDatabase db, long id) {
-        // get the parent to return after
-        Cursor c = db.query(TABLE_LISTA, new String[] { KEY_PARENT_ID }, ID_SELECTION,
-                new String[] { String.valueOf(id)}, null, null, null, "1");
-        long parent = -1;
-        if (c != null) {
-            try {
-                c.moveToFirst();
-                if (c.isAfterLast()) {
-                    return -1;
-                }
-                parent = c.getLong(0);
-            } finally {
-                c.close();
-            }
-        }
-
+    private int deleteLista(SQLiteDatabase db, long id) {
+        int count = 0;
         try {
             // recursive, get the list of descendent
             List<String> descendentIds = new ArrayList<>();
             feedUpDescendentIds(db, descendentIds, id);
             if (!descendentIds.isEmpty()) {
                 String where = TextUtils.join(",", Collections.nCopies(descendentIds.size(), "?"));
-                int deleted = db.delete(TABLE_LISTA, KEY_ID + " IN ("  + where + ")",
+                count += db.delete(TABLE_LISTA, KEY_ID + " IN ("  + where + ")",
                         descendentIds.toArray(new String[0]));
             }
             if (id != getRootId()) {
-                db.delete(TABLE_LISTA, KEY_ID + " = ?", new String[]{String.valueOf(id)});
+                count += db.delete(TABLE_LISTA, KEY_ID + " = ?", new String[]{String.valueOf(id)});
             }
         } catch (Exception e) {
             Exception f = e;
         }
-        return parent;
+        return count;
     }
 
-    private long getIndex(SQLiteDatabase db, String lid) {
-        Cursor c = db.query(
-                TABLE_LISTA, ID_COLUMNS, KEY_LID_SELECTION, new String[] { lid },
-                null, null, null, "1");
-        if (c == null) {
-            return -1;
+    private void feedUpAncestors(SQLiteDatabase db, long id, List<Long> ancestors) {
+        long parent = getParentOf(db, id);
+        if (parent != -1) {
+            ancestors.add(parent);
+            feedUpAncestors(db, parent, ancestors);
         }
-        c.moveToFirst();
-        long rv = c.getLong(0);
-        c.close();
-        return rv;
     }
 
     private void feedUpDescendentIds(SQLiteDatabase db, List<String> descendentIds, long id)  {
@@ -312,6 +286,35 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
                 c.close();
             }
         }
+    }
+
+    private long getIndex(SQLiteDatabase db, String lid) {
+        Cursor c = db.query(
+                TABLE_LISTA, ID_COLUMNS, KEY_LID_SELECTION, new String[] { lid },
+                null, null, null, "1");
+        if (c == null) {
+            return -1;
+        }
+        c.moveToFirst();
+        long rv = c.getLong(0);
+        c.close();
+        return rv;
+    }
+
+    private long getParentOf(SQLiteDatabase db, long id) {
+        Cursor c = db.query(TABLE_LISTA, PARENT_ID_COLUMNS, ID_SELECTION,
+                new String[]{String.valueOf(id)}, null, null, null, "1");
+        if (c != null) {
+            try {
+                c.moveToFirst();
+                if (!c.isAfterLast()) {
+                    return c.getLong(0);
+                }
+            } finally {
+                c.close();
+            }
+        }
+        return -1;
     }
 
     private Lista listaFromCursor(Cursor c) {

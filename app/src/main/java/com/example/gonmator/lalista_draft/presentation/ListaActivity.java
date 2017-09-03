@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -22,6 +21,8 @@ import com.example.gonmator.lalista_draft.model.LaListaDbHelper;
 import com.example.gonmator.lalista_draft.model.Lista;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 public class ListaActivity extends AppCompatActivity
         implements EditListDialogFragment.AddItemDialogListener, ListaAdapter.Listener,
@@ -87,9 +88,9 @@ public class ListaActivity extends AppCompatActivity
 
         // list view
         final RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-        RecyclerView.Adapter listAdapter = new ListaAdapter(this, this, R.layout.row_lista, null);
+        ListaAdapter listAdapter = new ListaAdapter(this, this, R.layout.row_lista, null);
         listView.setAdapter(listAdapter);
-        updateList(listView);
+        updateList(listAdapter);
     }
 
     @Override
@@ -121,14 +122,13 @@ public class ListaActivity extends AppCompatActivity
             case R.id.action_delete:
                 if (mMode == Mode.listView) {
                     confirmDelete(mCurrentId);
-                    return true;
                 } else if (mMode == Mode.edit) {
                     listView = (RecyclerView)findViewById(R.id.listView);
                     adapter = (ListaAdapter)listView.getAdapter();
                     Collection<Long> selected = adapter.getSelectedIds();
                     confirmDelete(selected);
                 }
-                return false;
+                return true;
             case R.id.action_settings:
                 break;
             case R.id.action_debug:
@@ -174,7 +174,7 @@ public class ListaActivity extends AppCompatActivity
 
     boolean goBack() {
         boolean rv = true;
-        long parent = mDbHelper.getParentIdOfLista(mCurrentId);
+        long parent = mDbHelper.getParentId(mCurrentId);
         if (parent != -1) {
             mCurrentId = parent;
         } else {
@@ -188,60 +188,75 @@ public class ListaActivity extends AppCompatActivity
     }
 
     void newList(String description) {
-        RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
-        newList(description, listView);
-    }
-
-    void newList(String description, RecyclerView listView) {
         if (description.length() > 0) {
+            RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
+            ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
             Lista lista = new Lista(description);
             mDbHelper.createLista(lista, mCurrentId);
-            updateList(listView);
+            updateList(adapter);
         }
     }
 
     void deleteList(long id) {
-        long parent = mDbHelper.deleteLista(id);
+        List<Long> ancestors = mDbHelper.getIdOfAncestors(mCurrentId);
+        mDbHelper.deleteLista(id);
         if (id == mCurrentId) {
-            if (parent != -1) {
-                mCurrentId = parent;
+            if (ancestors.size() > 0) {
+                mCurrentId = ancestors.get(0);
             } else {
                 mCurrentId = mRootId;
             }
+        } else {
+            Iterator<Long> it = ancestors.iterator();
+            while (it.hasNext()) {
+                if (it.next() == id) {
+                    if (it.hasNext()) {
+                        mCurrentId = it.next();
+                    } else {
+                        mCurrentId = mRootId;
+                    }
+                    break;
+                }
+            }
         }
-        updateList();
+    }
+
+    void deleteLists(long[] ids) {
+        long oldCurrentId = mCurrentId;
+        for (long id: ids) {
+            long parent = mDbHelper.getParentId(id);
+            deleteList(id);
+            if (parent == mCurrentId) {
+                oldCurrentId = -1;
+            }
+        }
+        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
+        ListaAdapter adapter = (ListaAdapter) listView.getAdapter();
+        adapter.clearSelected();
+        if (oldCurrentId != mCurrentId) {
+            updateList(adapter);
+        }
     }
 
     void updateList() {
-        updateList((RecyclerView)findViewById(R.id.listView));
+        RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
+        updateList((ListaAdapter)listView.getAdapter());
     }
 
-    void updateList(RecyclerView listView) {
-        ActionBar actionBar = getSupportActionBar();
+    void updateList(ListaAdapter adapter) {
         Toolbar listTitle = (Toolbar)findViewById(R.id.listTitle);
         if (mCurrentId != mRootId) {
-/*
-            if (actionBar != null) {
-                actionBar.setDisplayHomeAsUpEnabled(true);
-            }
-*/
             if (listTitle != null) {
                 listTitle.setTitle(mDbHelper.getLista(mCurrentId).getDescription());
                 listTitle.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
             }
         } else {
-/*
-            if (actionBar != null) {
-                actionBar.setDisplayHomeAsUpEnabled(false);
-            }
-*/
             if (listTitle != null) {
                 listTitle.setTitle(R.string.app_name);
                 listTitle.setNavigationIcon(null);
             }
         }
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
-        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
         adapter.changeCursor(childs);
     }
 
@@ -282,16 +297,10 @@ public class ListaActivity extends AppCompatActivity
                 if (BuildConfig.DEBUG && id != mCurrentId) {
                     throw new AssertionError("id expected to be the same as mCurrentId");
                 }
-                deleteList(id);
+                deleteLists(new long[]{id});
             } else if (context.containsKey("ids")) {
-                long[] ids = context.getLongArray("ids");
-                for (long id: ids) {
-                    deleteList(id);
-                }
-                RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-                ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-                adapter.clearSelected();
-                adapter.notifyDataSetChanged();
+                long oldCurrentId = mCurrentId;
+                deleteLists(context.getLongArray("ids"));
             }
         }
     }
