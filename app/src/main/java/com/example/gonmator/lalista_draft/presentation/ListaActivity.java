@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -20,6 +22,7 @@ import com.example.gonmator.lalista_draft.debug.DebugActivity;
 import com.example.gonmator.lalista_draft.model.LaListaDbHelper;
 import com.example.gonmator.lalista_draft.model.Lista;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -28,17 +31,13 @@ public class ListaActivity extends AppCompatActivity
         implements EditListDialogFragment.AddItemDialogListener, ListaAdapter.Listener,
         ConfigmDialogFragment.ConfirmDialogListener {
 
-    enum Mode {
-        listView,
-        edit
-    };
-
     private LaListaDbHelper mDbHelper = null;
     private long mRootId = -1;
     private long mCurrentId = -1;
     private int mDeep = 0;
-    Mode mMode = Mode.listView;
-    Menu mAppMenu = null;
+    private Menu mAppMenu = null;
+    private boolean mEditMode = false;
+    private boolean mSelectMode = false;
 
 
     // Activity
@@ -58,14 +57,19 @@ public class ListaActivity extends AppCompatActivity
         mDbHelper = new LaListaDbHelper(this);
         mRootId = mDbHelper.getRootId();
         mCurrentId = mRootId;
+        mEditMode = false;
+        mSelectMode = false;
 
         // check DB consistence
         // int fixed = mDbHelper.fixOrphans(mRootId);
 
         //  app bar
-        Toolbar appBar = (Toolbar)findViewById(R.id.toolbar);
+        Toolbar appBar = (Toolbar)findViewById(R.id.appbar);
+        appBar.setTitle("");
         setSupportActionBar(appBar);
-        Toolbar listTitle = (Toolbar)findViewById(R.id.listTitle);
+        CollapsingToolbarLayout appbarBox = (CollapsingToolbarLayout)findViewById(R.id.appbarBox);
+        appbarBox.setTitleEnabled(false);
+        Toolbar listTitle = (Toolbar)findViewById(R.id.listBar);
         listTitle.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -97,8 +101,12 @@ public class ListaActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         mAppMenu = menu;
         getMenuInflater().inflate(R.menu.menu_lista, menu);
-        menu.findItem(R.id.action_view).setVisible(mMode != Mode.listView);
-        menu.findItem(R.id.action_edit).setVisible(mMode != Mode.edit);
+        MenuItem editModeItem = menu.findItem(R.id.action_edit_mode);
+        if (mEditMode) {
+            editModeItem.setIcon(R.drawable.ic_visibility_white_24dp);
+        } else {
+            editModeItem.setIcon(R.drawable.ic_mode_edit_white_24dp);
+        }
         return true;
     }
 
@@ -111,22 +119,19 @@ public class ListaActivity extends AppCompatActivity
             case android.R.id.home:
                 goBack();
                 return true;
-            case R.id.action_edit:
-                setMode(Mode.edit);
-                invalidateOptionsMenu();
+            case R.id.action_edit_mode:
+                toggleEditMode();
                 return true;
-            case R.id.action_view:
-                setMode(Mode.listView);
-                invalidateOptionsMenu();
-                return true;
+            case R.id.action_select_mode:
+                break;
             case R.id.action_delete:
-                if (mMode == Mode.listView) {
-                    confirmDelete(mCurrentId);
-                } else if (mMode == Mode.edit) {
+                if (mSelectMode) {
                     listView = (RecyclerView)findViewById(R.id.listView);
                     adapter = (ListaAdapter)listView.getAdapter();
                     Collection<Long> selected = adapter.getSelectedIds();
                     confirmDelete(selected);
+                } else {
+                    confirmDelete(mCurrentId);
                 }
                 return true;
             case R.id.action_settings:
@@ -244,38 +249,46 @@ public class ListaActivity extends AppCompatActivity
     }
 
     void updateList(ListaAdapter adapter) {
-        Toolbar listTitle = (Toolbar)findViewById(R.id.listTitle);
+        Toolbar listBar = (Toolbar)findViewById(R.id.listBar);
         if (mCurrentId != mRootId) {
-            if (listTitle != null) {
-                listTitle.setTitle(mDbHelper.getLista(mCurrentId).getDescription());
-                listTitle.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+            if (listBar != null) {
+                listBar.setTitle(mDbHelper.getLista(mCurrentId).getDescription());
+                listBar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
             }
         } else {
-            if (listTitle != null) {
-                listTitle.setTitle(R.string.app_name);
-                listTitle.setNavigationIcon(null);
+            if (listBar != null) {
+                listBar.setTitle(R.string.app_name);
+                listBar.setNavigationIcon(null);
             }
         }
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
         adapter.changeCursor(childs);
     }
 
-    void setMode(Mode mode) {
-        mMode = mode;
+    void setEditMode(boolean editMode) {
+        mEditMode = editMode;
         RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-        adapter.setEditMode(mode == Mode.edit);
+        adapter.setEditMode(editMode);
         adapter.notifyDataSetChanged();
         invalidateOptionsMenu();
     }
 
-    void setEditModeAndSelect(int id) {
-        mMode = Mode.edit;
+    void toggleEditMode() {
+        setEditMode(!mEditMode);
+    }
+
+    void setSelectMode(boolean selectMode) {
+        mSelectMode = selectMode;
         RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-        adapter.setEditMode(true);
+        adapter.setSelectMode(mSelectMode);
         adapter.notifyDataSetChanged();
         invalidateOptionsMenu();
+        if (!mSelectMode) {
+            ActionBar actionBar = getSupportActionBar();
+            actionBar.setTitle("");
+        }
     }
 
 
@@ -307,6 +320,16 @@ public class ListaActivity extends AppCompatActivity
 
 
     // ListaAdapter.Listener interface
+
+    @Override
+    public void onSelectedItemsChanged(int selectedCount) {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            MessageFormat fmt = new MessageFormat(getString(R.string.selected_count));
+            String title = fmt.format(new Object[]{ selectedCount });
+            actionBar.setTitle(title);
+        }
+    }
 
     @Override
     public void onSubitemsButtonClick(long id) {

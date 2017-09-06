@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">LaLista-draft</string>
-    <string name="action_edit">Edit mode</string>
+    <string name="action_edit">Edit</string>
     <string name="action_settings">Settings</string>
     <string name="action_up">Up</string>
     <string name="new_list">New List</string>
@@ -13,8 +13,8 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
-    <string name="title_activity_debug_activiry">DebugActiviry</string>
-    <string name="section_format">Hello World from section: %1$d</string>
     <string name="lista_layout_manager_class">LinearLayoutManager</string>
     <string name="action_cancel">CANCEL</string>
+    <string name="selected_count">{0} items selected</string>
+    <string name="action_select">Select</string>
 </resources>

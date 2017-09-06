@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.gonmator.lalista_draft.R;
 import com.example.gonmator.lalista_draft.model.LaListaContract;
 
 import java.util.Collection;
@@ -23,6 +22,7 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
 
     interface Listener {
         public void onSubitemsButtonClick(long position);
+        public void onSelectedItemsChanged(int selectedCount);
     }
 
     private Cursor mCursor;
@@ -33,68 +33,10 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
     private Listener mListener;
     private ArraySet<Long> mSelected;
     private boolean mEditMode;
+    private boolean mSelectMode;
 
 
-    // ViewHolder
-
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        RowViewHolder viewHolder =
-                new RowViewHolder(this, mInflater.inflate(mLayoutId, parent, false));
-        return viewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        RowViewHolder viewHolder = (RowViewHolder)holder;
-        if (mCursor != null) {
-            mCursor.moveToPosition(position);
-            final long id = mCursor.getLong(mIdColumn);
-            viewHolder.setListaId(id);
-            viewHolder.setSelectedState(mEditMode && mSelected.contains(id));
-            viewHolder.setDescriptionText(mCursor.getString(mDescriptionColumn));
-            if (mEditMode) {
-                viewHolder.setSubitemsButtonVisibility(View.VISIBLE);
-                viewHolder.selectEditText();
-            } else {
-                viewHolder.setSubitemsButtonVisibility(View.GONE);
-                viewHolder.selectTextView();
-            }
-        }
-    }
-
-    @Override
-    public int getItemCount() {
-        return mCursor.getCount();
-    }
-
-
-    // RowViewHolder.Listener
-
-    @Override
-    public void onRowClick(RowViewHolder viewHolder) {
-        if (!mEditMode) {
-            mListener.onSubitemsButtonClick(viewHolder.getListaId());
-        } else {
-            toggleSelected(viewHolder);
-        }
-    }
-
-    @Override
-    public void onTextViewClick(RowViewHolder viewHolder) {
-        if (!mEditMode) {
-            mListener.onSubitemsButtonClick(viewHolder.getListaId());
-        } else {
-            onRowClick(viewHolder);
-        }
-    }
-
-    @Override
-    public void onSubitemsButtonClick(RowViewHolder viewHolder) {
-        if (mEditMode) {
-            mListener.onSubitemsButtonClick(viewHolder.getListaId());
-        }
-    }
+    // ListaAdapter
 
     public ListaAdapter(
             @NonNull Context context, @NonNull Listener listener, @LayoutRes int layoutId,
@@ -107,6 +49,7 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
         mLayoutId = layoutId;
         mSelected = new ArraySet<>();
         mEditMode = false;
+        mSelectMode = false;
         setHasStableIds(true);
     }
 
@@ -138,6 +81,7 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
             mSelected.add(id);
             viewHolder.setSelectedState(true);
         }
+        mListener.onSelectedItemsChanged(mSelected.size());
     }
 
     public Collection<Long> getSelectedIds() {
@@ -148,10 +92,72 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
         boolean prevEditMode = mEditMode;
         mEditMode = editMode;
         if (prevEditMode != editMode) {
-            if (!editMode) {
-                mSelected.clear();
-            }
             notifyItemRangeChanged(0, getItemCount());
         }
+    }
+
+    public void setSelectMode(boolean selectMode) {
+        boolean prevSelectMode = mSelectMode;
+        mSelectMode = selectMode;
+        if (prevSelectMode != selectMode) {
+            mSelected.clear();
+            mListener.onSelectedItemsChanged(0);
+            notifyItemRangeChanged(0, getItemCount());
+        }
+    }
+
+    // RecyclerView.Adapter
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        RowViewHolder viewHolder =
+                new RowViewHolder(this, mInflater.inflate(mLayoutId, parent, false));
+        return viewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        RowViewHolder viewHolder = (RowViewHolder)holder;
+        if (mCursor != null) {
+            mCursor.moveToPosition(position);
+            final long id = mCursor.getLong(mIdColumn);
+            viewHolder.setListaId(id);
+            viewHolder.setSelectedState(mSelectMode && mSelected.contains(id));
+            viewHolder.setDescriptionText(mCursor.getString(mDescriptionColumn));
+            if (mEditMode || mSelectMode) {
+                viewHolder.setSubitemsButtonVisibility(View.VISIBLE);
+                viewHolder.selectEditText();
+            } else {
+                viewHolder.setSubitemsButtonVisibility(View.GONE);
+                viewHolder.selectTextView();
+            }
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return mCursor.getCount();
+    }
+
+
+    // RowViewHolder.Listener
+
+    @Override
+    public void onRowClick(RowViewHolder viewHolder) {
+        if (mSelectMode) {
+            toggleSelected(viewHolder);
+        } else {
+            mListener.onSubitemsButtonClick(viewHolder.getListaId());
+        }
+    }
+
+    @Override
+    public void onTextViewClick(RowViewHolder viewHolder) {
+       onRowClick(viewHolder);
+    }
+
+    @Override
+    public void onSubitemsButtonClick(RowViewHolder viewHolder) {
+        mListener.onSubitemsButtonClick(viewHolder.getListaId());
     }
 }

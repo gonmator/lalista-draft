@@ -1,8 +1,6 @@
 package com.example.gonmator.lalista_draft.debug;
 
 import android.content.Context;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -11,13 +9,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.ListView;
 
 import com.example.gonmator.lalista_draft.R;
 import com.example.gonmator.lalista_draft.model.LaListaDbHelper;
@@ -46,7 +39,7 @@ public class DebugActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_debug);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.appbar);
         toolbar.setTitle(R.string.app_name);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three

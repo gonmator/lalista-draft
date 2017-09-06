@@ -45,13 +45,14 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
             }
         });
         mSelectButton = rowView.findViewById(R.id.selectButton);
+/*
         mSelectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 mListener.onRowClick(viewHolder);
             }
         });
+*/
 
         mTextView = rowView.findViewById(R.id.textView);
         mTextView.setOnClickListener(new View.OnClickListener() {
@@ -62,12 +63,14 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
         });
 
         mEditText = rowView.findViewById(R.id.editItem);
+/*
         mEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mListener.onTextViewClick(viewHolder);
             }
         });
+*/
 
         mSubitemsButton = rowView.findViewById(R.id.subitemsButton);
         mSubitemsButton.setOnClickListener(new View.OnClickListener() {
@@ -83,13 +86,13 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
     }
 
     void selectEditText() {
-        mSelectButton.setVisibility(View.VISIBLE);
+//        mSelectButton.setVisibility(View.VISIBLE);
         mTextView.setVisibility(View.GONE);
         mEditText.setVisibility(View.VISIBLE);
     }
 
     void selectTextView() {
-        mSelectButton.setVisibility(View.GONE);
+//        mSelectButton.setVisibility(View.GONE);
         mTextView.setVisibility(View.VISIBLE);
         mEditText.setVisibility(View.GONE);
     }
