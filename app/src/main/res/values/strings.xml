@@ -15,6 +15,7 @@
     <string name="title_notifications">Notifications</string>
     <string name="lista_layout_manager_class">LinearLayoutManager</string>
     <string name="action_cancel">CANCEL</string>
-    <string name="selected_count">{0} items selected</string>
+    <string name="selected_count">{0}</string>
     <string name="action_select">Select</string>
+    <string name="action_select_all">Select all</string>
 </resources>

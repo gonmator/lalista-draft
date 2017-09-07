@@ -77,7 +77,26 @@ public class ListaActivity extends AppCompatActivity
             }
         });
 
-        // menu
+        Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
+        selectBar.inflateMenu(R.menu.menu_select);
+        selectBar.setNavigationIcon(R.drawable.ic_close_black_24dp);
+        selectBar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setSelectMode(false);
+            }
+        });
+        selectBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_select_all:
+                        break;
+                }
+                return false;
+            }
+        });
+        selectBar.setTitleTextColor(0xff000000);
 
         // edit text
         EditText editText = (EditText)findViewById(R.id.editText);
@@ -123,6 +142,7 @@ public class ListaActivity extends AppCompatActivity
                 toggleEditMode();
                 return true;
             case R.id.action_select_mode:
+                toggleSelectMode();
                 break;
             case R.id.action_delete:
                 if (mSelectMode) {
@@ -284,11 +304,17 @@ public class ListaActivity extends AppCompatActivity
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
         adapter.setSelectMode(mSelectMode);
         adapter.notifyDataSetChanged();
-        invalidateOptionsMenu();
-        if (!mSelectMode) {
-            ActionBar actionBar = getSupportActionBar();
-            actionBar.setTitle("");
+        Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
+        if (mSelectMode) {
+            selectBar.setVisibility(View.VISIBLE);
+        } else {
+            selectBar.setVisibility(View.GONE);
         }
+        invalidateOptionsMenu();
+    }
+
+    void toggleSelectMode() {
+        setSelectMode(!mSelectMode);
     }
 
 
@@ -323,11 +349,15 @@ public class ListaActivity extends AppCompatActivity
 
     @Override
     public void onSelectedItemsChanged(int selectedCount) {
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            MessageFormat fmt = new MessageFormat(getString(R.string.selected_count));
-            String title = fmt.format(new Object[]{ selectedCount });
-            actionBar.setTitle(title);
+        Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
+        if (selectBar!= null) {
+            if (selectedCount != 0) {
+                MessageFormat fmt = new MessageFormat(getString(R.string.selected_count));
+                String title = fmt.format(new Object[]{selectedCount});
+                selectBar.setTitle(title);
+            } else {
+                selectBar.setTitle("");
+            }
         }
     }
 

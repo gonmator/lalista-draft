@@ -124,12 +124,15 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
             viewHolder.setListaId(id);
             viewHolder.setSelectedState(mSelectMode && mSelected.contains(id));
             viewHolder.setDescriptionText(mCursor.getString(mDescriptionColumn));
-            if (mEditMode || mSelectMode) {
-                viewHolder.setSubitemsButtonVisibility(View.VISIBLE);
+            if (mEditMode) {
                 viewHolder.selectEditText();
             } else {
-                viewHolder.setSubitemsButtonVisibility(View.GONE);
                 viewHolder.selectTextView();
+            }
+            if (mEditMode || mSelectMode) {
+                viewHolder.setSubitemsButtonVisibility(View.VISIBLE);
+            } else {
+                viewHolder.setSubitemsButtonVisibility(View.GONE);
             }
         }
     }

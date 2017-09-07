@@ -9,12 +9,6 @@ import android.widget.TextView;
 
 import com.example.gonmator.lalista_draft.R;
 
-import static android.text.InputType.TYPE_NULL;
-import static android.text.InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
-import static android.text.InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
-import static android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
-import static android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE;
-
 /**
  * Created by gonmator on 30.08.17.
  */
@@ -98,11 +92,11 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
     }
 
     void setSelectedState(boolean selected) {
-        mSelectButton.setSelected(selected);
+//        mSelectButton.setSelected(selected);
         if (selected) {
             itemView.setBackgroundResource(R.color.colorAccent);
         } else {
-            itemView.setBackgroundResource(R.color.colorBackground);
+            itemView.setBackgroundResource(R.color.colorBackgroundDark);
         }
     }
 
