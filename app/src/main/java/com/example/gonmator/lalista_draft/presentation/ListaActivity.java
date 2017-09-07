@@ -90,6 +90,9 @@ public class ListaActivity extends AppCompatActivity
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
+                    case R.id.action_delete:
+                        deleteSelected();
+                        return true;
                     case R.id.action_select_all:
                         break;
                 }
@@ -258,9 +261,17 @@ public class ListaActivity extends AppCompatActivity
         RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter) listView.getAdapter();
         adapter.clearSelected();
+        setSelectMode(false);
         if (oldCurrentId != mCurrentId) {
             updateList(adapter);
         }
+    }
+
+    void deleteSelected() {
+        RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
+        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
+        Collection<Long> selected = adapter.getSelectedIds();
+        confirmDelete(selected);
     }
 
     void updateList() {
@@ -286,9 +297,12 @@ public class ListaActivity extends AppCompatActivity
     }
 
     void setEditMode(boolean editMode) {
-        mEditMode = editMode;
         RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
+        setEditMode(editMode, adapter);
+    }
+    void setEditMode(boolean editMode, ListaAdapter adapter) {
+        mEditMode = editMode;
         adapter.setEditMode(editMode);
         adapter.notifyDataSetChanged();
         invalidateOptionsMenu();
