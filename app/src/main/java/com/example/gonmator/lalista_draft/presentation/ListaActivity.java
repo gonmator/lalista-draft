@@ -371,6 +371,12 @@ public class ListaActivity extends AppCompatActivity
     // ListaAdapter.Listener interface
 
     @Override
+    public void onItemTextUpdated(long id, String newText) {
+        mDbHelper.updateListaDescription(id, newText);
+        updateList();
+    }
+
+    @Override
     public void onSelectedItemsChanged(int selectedCount) {
         Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
         if (selectBar!= null) {

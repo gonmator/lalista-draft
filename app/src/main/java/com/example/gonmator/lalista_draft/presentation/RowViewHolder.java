@@ -2,7 +2,9 @@ package com.example.gonmator.lalista_draft.presentation;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -15,9 +17,10 @@ import com.example.gonmator.lalista_draft.R;
 
 public class RowViewHolder extends RecyclerView.ViewHolder {
     interface Listener {
-        public void onRowClick(RowViewHolder viewHolder);
-        public void onTextViewClick(RowViewHolder viewHolder);
-        public void onSubitemsButtonClick(RowViewHolder viewHolder);
+        void onRowClick(RowViewHolder viewHolder);
+        void onTextViewClick(RowViewHolder viewHolder);
+        void onSubitemsButtonClick(RowViewHolder viewHolder);
+        void onTextChanged(RowViewHolder viewHolder);
     }
 
     private final Listener mListener;
@@ -57,14 +60,17 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
         });
 
         mEditText = rowView.findViewById(R.id.editItem);
-/*
-        mEditText.setOnClickListener(new View.OnClickListener() {
+        mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public void onClick(View view) {
-                mListener.onTextViewClick(viewHolder);
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_NEXT ||
+                        actionId == EditorInfo.IME_ACTION_DONE) {
+                    mTextView.setText(v.getText());
+                    mListener.onTextChanged(viewHolder);
+                }
+                return false;
             }
         });
-*/
 
         mSubitemsButton = rowView.findViewById(R.id.subitemsButton);
         mSubitemsButton.setOnClickListener(new View.OnClickListener() {
@@ -73,6 +79,10 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
                 mListener.onSubitemsButtonClick(viewHolder);
             }
         });
+    }
+
+    public CharSequence getDescriptionText() {
+        return mEditText.getText();
     }
 
     public long getListaId() {

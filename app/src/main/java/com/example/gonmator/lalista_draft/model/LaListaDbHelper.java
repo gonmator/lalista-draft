@@ -49,6 +49,7 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
 
     private long mRootId;
 
+
     // Basic implementation
 
     public LaListaDbHelper(Context context) {
@@ -219,6 +220,20 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         values.put(KEY_ATTRIBUTES, lista.getAttributesStr());
 
         db.update(TABLE_LISTA, values, KEY_LID_SELECTION, new String[] { lista.getLidStr() });
+    }
+
+    public int updateListaDescription(long id, String description) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_DESCRIPTION, description);
+
+        try {
+            int updated = db.update(TABLE_LISTA, values, ID_SELECTION,
+                    new String[]{String.valueOf(id)});
+            return updated;
+        } catch (Throwable e) {
+            return -1;
+        }
     }
 
     public int deleteLista(long id) {

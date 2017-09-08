@@ -21,8 +21,9 @@ import java.util.Collection;
 public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.Listener {
 
     interface Listener {
-        public void onSubitemsButtonClick(long position);
-        public void onSelectedItemsChanged(int selectedCount);
+        void onItemTextUpdated(long position, String text);
+        void onSubitemsButtonClick(long position);
+        void onSelectedItemsChanged(int selectedCount);
     }
 
     private Cursor mCursor;
@@ -162,5 +163,11 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
     @Override
     public void onSubitemsButtonClick(RowViewHolder viewHolder) {
         mListener.onSubitemsButtonClick(viewHolder.getListaId());
+    }
+
+    @Override
+    public void onTextChanged(RowViewHolder viewHolder) {
+        mListener.onItemTextUpdated(viewHolder.getListaId(),
+                viewHolder.getDescriptionText().toString());
     }
 }
