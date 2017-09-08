@@ -91,8 +91,7 @@ public class ListaActivity extends AppCompatActivity
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_delete:
-                        deleteSelected();
-                        return true;
+                        return deleteSelected();
                     case R.id.action_select_all:
                         break;
                 }
@@ -200,31 +199,6 @@ public class ListaActivity extends AppCompatActivity
         confirmDialog.show(getSupportFragmentManager(), "delete_list");
     }
 
-    boolean goBack() {
-        boolean rv = true;
-        long parent = mDbHelper.getParentId(mCurrentId);
-        if (parent != -1) {
-            mCurrentId = parent;
-        } else {
-            rv = mCurrentId != mRootId;
-            mCurrentId = mRootId;
-        }
-        if (rv) {
-            updateList();
-        }
-        return rv;
-    }
-
-    void newList(String description) {
-        if (description.length() > 0) {
-            RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
-            ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-            Lista lista = new Lista(description);
-            mDbHelper.createLista(lista, mCurrentId);
-            updateList(adapter);
-        }
-    }
-
     void deleteList(long id) {
         List<Long> ancestors = mDbHelper.getIdOfAncestors(mCurrentId);
         mDbHelper.deleteLista(id);
@@ -267,11 +241,40 @@ public class ListaActivity extends AppCompatActivity
         }
     }
 
-    void deleteSelected() {
+    boolean deleteSelected() {
         RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
         Collection<Long> selected = adapter.getSelectedIds();
-        confirmDelete(selected);
+        if (selected.size() > 0) {
+            confirmDelete(selected);
+            return true;
+        }
+        return false;
+    }
+
+    boolean goBack() {
+        boolean rv = true;
+        long parent = mDbHelper.getParentId(mCurrentId);
+        if (parent != -1) {
+            mCurrentId = parent;
+        } else {
+            rv = mCurrentId != mRootId;
+            mCurrentId = mRootId;
+        }
+        if (rv) {
+            updateList();
+        }
+        return rv;
+    }
+
+    void newList(String description) {
+        if (description.length() > 0) {
+            RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
+            ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
+            Lista lista = new Lista(description);
+            mDbHelper.createLista(lista, mCurrentId);
+            updateList(adapter);
+        }
     }
 
     void updateList() {
@@ -304,27 +307,33 @@ public class ListaActivity extends AppCompatActivity
     void setEditMode(boolean editMode, ListaAdapter adapter) {
         mEditMode = editMode;
         adapter.setEditMode(editMode);
-        adapter.notifyDataSetChanged();
+        if (mEditMode) {
+            setSelectMode(false, adapter);
+        }
         invalidateOptionsMenu();
     }
 
-    void toggleEditMode() {
-        setEditMode(!mEditMode);
-    }
-
     void setSelectMode(boolean selectMode) {
-        mSelectMode = selectMode;
         RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
         ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
+        setSelectMode(selectMode, adapter);
+    }
+    void setSelectMode(boolean selectMode, ListaAdapter adapter) {
+        mSelectMode = selectMode;
         adapter.setSelectMode(mSelectMode);
         adapter.notifyDataSetChanged();
         Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
         if (mSelectMode) {
             selectBar.setVisibility(View.VISIBLE);
+            setEditMode(false, adapter);
         } else {
             selectBar.setVisibility(View.GONE);
         }
         invalidateOptionsMenu();
+    }
+
+    void toggleEditMode() {
+        setEditMode(!mEditMode);
     }
 
     void toggleSelectMode() {
