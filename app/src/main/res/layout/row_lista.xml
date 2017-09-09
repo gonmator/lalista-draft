@@ -71,6 +71,7 @@
     <EditText
         android:id="@+id/editItem"
         android:background="@android:color/transparent"
+        android:scrollHorizontally="false"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
@@ -79,7 +80,7 @@
         android:layout_marginTop="4dp"
         android:fontFamily="roboto-regular"
         android:imeOptions="actionDone"
-        android:inputType="textCapSentences|textAutoCorrect|textAutoComplete"
+        android:inputType="textCapSentences|textAutoCorrect"
         android:paddingTop="4dp"
         android:textSize="16sp"
         android:visibility="gone"

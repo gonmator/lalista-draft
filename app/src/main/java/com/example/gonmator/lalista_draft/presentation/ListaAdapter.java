@@ -118,7 +118,7 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        RowViewHolder viewHolder = (RowViewHolder)holder;
+        RowViewHolder viewHolder = (RowViewHolder) holder;
         if (mCursor != null) {
             mCursor.moveToPosition(position);
             final long id = mCursor.getLong(mIdColumn);
@@ -136,6 +136,15 @@ public class ListaAdapter extends RecyclerView.Adapter implements RowViewHolder.
                 viewHolder.setSubitemsButtonVisibility(View.GONE);
             }
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        if (mCursor != null) {
+            mCursor.moveToPosition(position);
+            return mCursor.getLong(mIdColumn);
+        }
+        return RecyclerView.NO_ID;
     }
 
     @Override

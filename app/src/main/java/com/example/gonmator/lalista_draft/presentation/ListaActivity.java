@@ -145,7 +145,7 @@ public class ListaActivity extends AppCompatActivity
                 return true;
             case R.id.action_select_mode:
                 toggleSelectMode();
-                break;
+                return true;
             case R.id.action_delete:
                 if (mSelectMode) {
                     listView = (RecyclerView)findViewById(R.id.listView);
@@ -321,7 +321,6 @@ public class ListaActivity extends AppCompatActivity
     void setSelectMode(boolean selectMode, ListaAdapter adapter) {
         mSelectMode = selectMode;
         adapter.setSelectMode(mSelectMode);
-        adapter.notifyDataSetChanged();
         Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
         if (mSelectMode) {
             selectBar.setVisibility(View.VISIBLE);

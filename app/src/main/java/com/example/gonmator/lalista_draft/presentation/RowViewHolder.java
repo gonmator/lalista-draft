@@ -42,14 +42,6 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
             }
         });
         mSelectButton = rowView.findViewById(R.id.selectButton);
-/*
-        mSelectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mListener.onRowClick(viewHolder);
-            }
-        });
-*/
 
         mTextView = rowView.findViewById(R.id.textView);
         mTextView.setOnClickListener(new View.OnClickListener() {
@@ -60,6 +52,8 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
         });
 
         mEditText = rowView.findViewById(R.id.editItem);
+        mEditText.setHorizontallyScrolling(false);
+        mEditText.setMaxLines(Integer.MAX_VALUE);
         mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -90,19 +84,16 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
     }
 
     void selectEditText() {
-//        mSelectButton.setVisibility(View.VISIBLE);
         mTextView.setVisibility(View.GONE);
         mEditText.setVisibility(View.VISIBLE);
     }
 
     void selectTextView() {
-//        mSelectButton.setVisibility(View.GONE);
         mTextView.setVisibility(View.VISIBLE);
         mEditText.setVisibility(View.GONE);
     }
 
     void setSelectedState(boolean selected) {
-//        mSelectButton.setSelected(selected);
         if (selected) {
             itemView.setBackgroundResource(R.color.colorAccent);
         } else {
