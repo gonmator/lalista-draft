@@ -2,6 +2,8 @@ package com.example.gonmator.lalista_draft.presentation;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -15,24 +17,28 @@ import com.example.gonmator.lalista_draft.R;
  * Created by gonmator on 30.08.17.
  */
 
-public class RowViewHolder extends RecyclerView.ViewHolder {
+public class RowViewHolder extends RecyclerView.ViewHolder implements View.OnFocusChangeListener {
     interface Listener {
-        void onRowClick(RowViewHolder viewHolder);
-        void onTextViewClick(RowViewHolder viewHolder);
-        void onSubitemsButtonClick(RowViewHolder viewHolder);
+        void onActionButtonClick(RowViewHolder viewHolder);
+        void onEditFocusChange(RowViewHolder viewHolder, boolean hasFocus);
         void onTextChanged(RowViewHolder viewHolder);
+        void onTextViewClick(RowViewHolder viewHolder);
+        void onRowClick(RowViewHolder viewHolder);
     }
 
     private final Listener mListener;
     private ImageButton mSelectButton;
     private TextView mTextView;
     private EditText mEditText;
-    private ImageButton mSubitemsButton;
+    private ImageButton mActionButton;
     private long mListaId;
+    private RowViewHolder mViewHolder;
+    private boolean mAttached;
 
     public RowViewHolder(@NonNull Listener listener, View itemView) {
         super(itemView);
         final RowViewHolder viewHolder = this;
+        mViewHolder = this;
         mListener = listener;
         RowView rowView = (RowView) itemView;
         rowView.setOnClickListener(new View.OnClickListener() {
@@ -57,22 +63,23 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
         mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_NEXT ||
-                        actionId == EditorInfo.IME_ACTION_DONE) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
                     mTextView.setText(v.getText());
                     mListener.onTextChanged(viewHolder);
                 }
                 return false;
             }
         });
+        mEditText.setOnFocusChangeListener(this);
 
-        mSubitemsButton = rowView.findViewById(R.id.subitemsButton);
-        mSubitemsButton.setOnClickListener(new View.OnClickListener() {
+        mActionButton = rowView.findViewById(R.id.actionButton);
+        mActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onSubitemsButtonClick(viewHolder);
+                mListener.onActionButtonClick(viewHolder);
             }
         });
+        mAttached = false;
     }
 
     public CharSequence getDescriptionText() {
@@ -83,6 +90,10 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
         return mListaId;
     }
 
+    public boolean isAttached() {
+        return mAttached;
+    }
+
     void selectEditText() {
         mTextView.setVisibility(View.GONE);
         mEditText.setVisibility(View.VISIBLE);
@@ -91,6 +102,14 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
     void selectTextView() {
         mTextView.setVisibility(View.VISIBLE);
         mEditText.setVisibility(View.GONE);
+    }
+
+    void setActionButtonImage(int resId) {
+        mActionButton.setImageResource(resId);
+    }
+
+    void setAttached(boolean attached) {
+        mAttached = attached;
     }
 
     void setSelectedState(boolean selected) {
@@ -114,7 +133,14 @@ public class RowViewHolder extends RecyclerView.ViewHolder {
         mListaId = id;
     }
 
-    void setSubitemsButtonVisibility(int visibility) {
-        mSubitemsButton.setVisibility(visibility);
+    void setActionButtonVisibility(int visibility) {
+        mActionButton.setVisibility(visibility);
+    }
+
+
+    // OnFocusChangeListener
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        mListener.onEditFocusChange(mViewHolder, hasFocus);
     }
 }

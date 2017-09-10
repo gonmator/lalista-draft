@@ -320,7 +320,6 @@ public class ListaActivity extends AppCompatActivity
     }
     void setSelectMode(boolean selectMode, ListaAdapter adapter) {
         mSelectMode = selectMode;
-        adapter.setSelectMode(mSelectMode);
         Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
         if (mSelectMode) {
             selectBar.setVisibility(View.VISIBLE);
@@ -328,6 +327,7 @@ public class ListaActivity extends AppCompatActivity
         } else {
             selectBar.setVisibility(View.GONE);
         }
+        adapter.setSelectMode(mSelectMode);
         invalidateOptionsMenu();
     }
 
