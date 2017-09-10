@@ -2,8 +2,6 @@ package com.example.gonmator.lalista_draft.presentation;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -17,7 +15,9 @@ import com.example.gonmator.lalista_draft.R;
  * Created by gonmator on 30.08.17.
  */
 
-public class RowViewHolder extends RecyclerView.ViewHolder implements View.OnFocusChangeListener {
+public class RowViewHolder extends RecyclerView.ViewHolder implements
+        TextView.OnEditorActionListener, View.OnClickListener, View.OnFocusChangeListener {
+
     interface Listener {
         void onActionButtonClick(RowViewHolder viewHolder);
         void onEditFocusChange(RowViewHolder viewHolder, boolean hasFocus);
@@ -32,62 +32,34 @@ public class RowViewHolder extends RecyclerView.ViewHolder implements View.OnFoc
     private EditText mEditText;
     private ImageButton mActionButton;
     private long mListaId;
-    private RowViewHolder mViewHolder;
     private boolean mAttached;
 
     public RowViewHolder(@NonNull Listener listener, View itemView) {
         super(itemView);
-        final RowViewHolder viewHolder = this;
-        mViewHolder = this;
         mListener = listener;
+
         RowView rowView = (RowView) itemView;
-        rowView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mListener.onRowClick(viewHolder);
-            }
-        });
+        rowView.setOnClickListener(this);
+
         mSelectButton = rowView.findViewById(R.id.selectButton);
 
         mTextView = rowView.findViewById(R.id.textView);
-        mTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mListener.onTextViewClick(viewHolder);
-            }
-        });
+        mTextView.setOnClickListener(this);
 
         mEditText = rowView.findViewById(R.id.editItem);
         mEditText.setHorizontallyScrolling(false);
         mEditText.setMaxLines(Integer.MAX_VALUE);
-        mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    mTextView.setText(v.getText());
-                    mListener.onTextChanged(viewHolder);
-                }
-                return false;
-            }
-        });
+        mEditText.setOnEditorActionListener(this);
         mEditText.setOnFocusChangeListener(this);
 
         mActionButton = rowView.findViewById(R.id.actionButton);
-        mActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mListener.onActionButtonClick(viewHolder);
-            }
-        });
+        mActionButton.setOnClickListener(this);
+
         mAttached = false;
     }
 
     public CharSequence getDescriptionText() {
         return mEditText.getText();
-    }
-
-    public long getListaId() {
-        return mListaId;
     }
 
     public boolean isAttached() {
@@ -138,9 +110,36 @@ public class RowViewHolder extends RecyclerView.ViewHolder implements View.OnFoc
     }
 
 
+    // OnClickListener
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.actionButton:
+                mListener.onActionButtonClick(this);
+                break;
+            case R.id.rowView:
+                mListener.onRowClick(this);
+                break;
+            case R.id.textView:
+                mListener.onTextViewClick(this);
+                break;
+        }
+    }
+
+    // onEditActionListener
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
+            mTextView.setText(v.getText());
+            mListener.onTextChanged(this);
+            return true;
+        }
+        return false;
+    }
+
     // OnFocusChangeListener
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
-        mListener.onEditFocusChange(mViewHolder, hasFocus);
+        mListener.onEditFocusChange(this, hasFocus);
     }
 }
