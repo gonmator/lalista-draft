@@ -93,7 +93,7 @@ public class ListaActivity extends AppCompatActivity
                     case R.id.action_delete:
                         return deleteSelected();
                     case R.id.action_select_all:
-                        break;
+                        return selectAll();
                 }
                 return false;
             }
@@ -297,6 +297,13 @@ public class ListaActivity extends AppCompatActivity
         }
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
         adapter.changeCursor(childs);
+    }
+
+    boolean selectAll() {
+        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
+        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
+        int selected = adapter.selectAll();
+        return selected > 0;
     }
 
     void setEditMode(boolean editMode) {

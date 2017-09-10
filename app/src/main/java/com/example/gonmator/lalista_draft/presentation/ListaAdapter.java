@@ -35,6 +35,8 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     private final int SELECT_MODE_OFF = 4;
     private final int ENTER_EDITING = 5;
     private final int EXIT_EDITING = 6;
+    private final int SELECT = 7;
+    private final int UNSELECT=8;
 
     private Cursor mCursor;
     private int mIdColumn;
@@ -88,16 +90,29 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         long id = viewHolder.getItemId();
         if (mSelected.contains(id)) {
             mSelected.remove(id);
-            viewHolder.setSelectedState(false);
+            notifyItemChanged(viewHolder.getAdapterPosition(), UNSELECT);
         } else {
             mSelected.add(id);
-            viewHolder.setSelectedState(true);
+            notifyItemChanged(viewHolder.getAdapterPosition(), SELECT);
         }
         mListener.onSelectedItemsChanged(mSelected.size());
     }
 
     public Collection<Long> getSelectedIds() {
         return mSelected;
+    }
+
+    public int selectAll() {
+        if (mSelectMode) {
+            for (int position = 0; position < getItemCount(); position++) {
+                long id = getItemId(position);
+                mSelected.add(id);
+            }
+            notifyItemRangeChanged(0, getItemCount(), SELECT);
+            mListener.onSelectedItemsChanged(mSelected.size());
+            return getItemCount();
+        }
+        return 0;
     }
 
     public void setEditMode(boolean editMode) {
@@ -202,6 +217,14 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
                     if (mEditMode) {
                         holder.setActionButtonImage(R.drawable.ic_arrow_forward_white_24dp);
                     }
+                    break;
+                case SELECT:
+                    if (mSelectMode) {
+                        holder.setSelectedState(true);
+                    }
+                    break;
+                case UNSELECT:
+                    holder.setSelectedState(false);
                     break;
             }
         }
