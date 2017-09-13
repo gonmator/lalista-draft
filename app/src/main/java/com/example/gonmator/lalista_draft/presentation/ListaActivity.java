@@ -326,15 +326,7 @@ public class ListaActivity extends AppCompatActivity
         setSelectMode(selectMode, adapter);
     }
     void setSelectMode(boolean selectMode, ListaAdapter adapter) {
-        mSelectMode = selectMode;
-        Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
-        if (mSelectMode) {
-            selectBar.setVisibility(View.VISIBLE);
-            setEditMode(false, adapter);
-        } else {
-            selectBar.setVisibility(View.GONE);
-        }
-        adapter.setSelectMode(mSelectMode);
+        adapter.setSelectMode(selectMode);
         invalidateOptionsMenu();
     }
 
@@ -380,6 +372,23 @@ public class ListaActivity extends AppCompatActivity
     public void onItemTextUpdated(long id, String newText) {
         mDbHelper.updateListaDescription(id, newText);
         updateList();
+    }
+
+    @Override
+    public void onEnterSelectMode() {
+        mSelectMode = true;
+        Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
+        selectBar.setVisibility(View.VISIBLE);
+        setEditMode(false);
+        invalidateOptionsMenu();
+    }
+
+    @Override
+    public void onExitSelectMode() {
+        mSelectMode = false;
+        Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
+        selectBar.setVisibility(View.GONE);
+        invalidateOptionsMenu();
     }
 
     @Override

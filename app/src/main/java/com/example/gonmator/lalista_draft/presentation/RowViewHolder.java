@@ -16,14 +16,17 @@ import com.example.gonmator.lalista_draft.R;
  */
 
 public class RowViewHolder extends RecyclerView.ViewHolder implements
-        TextView.OnEditorActionListener, View.OnClickListener, View.OnFocusChangeListener {
+        TextView.OnEditorActionListener, View.OnClickListener, View.OnFocusChangeListener,
+        View.OnLongClickListener {
 
     interface Listener {
         void onActionButtonClick(RowViewHolder viewHolder);
         void onEditFocusChange(RowViewHolder viewHolder, boolean hasFocus);
         void onTextChanged(RowViewHolder viewHolder);
         void onTextViewClick(RowViewHolder viewHolder);
+        void onTextViewLongClick(RowViewHolder viewHolder);
         void onRowClick(RowViewHolder viewHolder);
+        void onRowLongClick(RowViewHolder viewHolder);
     }
 
     private final Listener mListener;
@@ -40,11 +43,13 @@ public class RowViewHolder extends RecyclerView.ViewHolder implements
 
         RowView rowView = (RowView) itemView;
         rowView.setOnClickListener(this);
+        rowView.setOnLongClickListener(this);
 
         mSelectButton = rowView.findViewById(R.id.selectButton);
 
         mTextView = rowView.findViewById(R.id.textView);
         mTextView.setOnClickListener(this);
+        mTextView.setOnLongClickListener(this);
 
         mEditText = rowView.findViewById(R.id.editItem);
         mEditText.setHorizontallyScrolling(false);
@@ -141,5 +146,19 @@ public class RowViewHolder extends RecyclerView.ViewHolder implements
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         mListener.onEditFocusChange(this, hasFocus);
+    }
+
+    // onLongClickListener
+    @Override
+    public boolean onLongClick(View v) {
+        switch (v.getId()) {
+            case R.id.rowView:
+                mListener.onTextViewLongClick(this);
+                return true;
+            case R.id.textView:
+                mListener.onRowLongClick(this);
+                return true;
+        }
+        return false;
     }
 }

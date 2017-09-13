@@ -25,7 +25,9 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
 
     interface Listener {
         void onItemTextUpdated(long position, String text);
-        void onSubitemsButtonClick(long position);
+        void onSubitemsButtonClick(long id);
+        void onEnterSelectMode();
+        void onExitSelectMode();
         void onSelectedItemsChanged(int selectedCount);
     }
 
@@ -86,6 +88,13 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         mSelected.clear();
     }
 
+    public void setSelected(RowViewHolder viewHolder) {
+        long id = viewHolder.getItemId();
+        mSelected.add(id);
+        notifyItemChanged(viewHolder.getAdapterPosition(), SELECT);
+        mListener.onSelectedItemsChanged(mSelected.size());
+    }
+
     public void toggleSelected(RowViewHolder viewHolder) {
         long id = viewHolder.getItemId();
         if (mSelected.contains(id)) {
@@ -119,8 +128,7 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         boolean prevEditMode = mEditMode;
         mEditMode = editMode;
         if (prevEditMode != editMode) {
-            Integer payload = mEditMode ? EDIT_MODE_ON : EDIT_MODE_OFF;
-            notifyItemRangeChanged(0, getItemCount(), payload);
+            notifyItemRangeChanged(0, getItemCount(), mEditMode ? EDIT_MODE_ON : EDIT_MODE_OFF);
         }
     }
 
@@ -130,8 +138,13 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         if (prevSelectMode != selectMode) {
             mSelected.clear();
             mListener.onSelectedItemsChanged(0);
-            Integer payload = mSelectMode ? SELECT_MODE_ON : SELECT_MODE_OFF;
-            notifyItemRangeChanged(0, getItemCount(), payload);
+            notifyItemRangeChanged(0, getItemCount(),
+                    mSelectMode ? SELECT_MODE_ON : SELECT_MODE_OFF);
+            if (mSelectMode) {
+                mListener.onEnterSelectMode();
+            } else {
+                mListener.onExitSelectMode();
+            }
         }
     }
 
@@ -257,7 +270,6 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         if (mEditMode) {
             if (hasFocus) {
                 mEditing = viewHolder.getItemId();
-                Integer payload = ENTER_EDITING;
                 notifyItemChanged(viewHolder.getAdapterPosition(), ENTER_EDITING);
             } else {
                 if (mEditing == viewHolder.getItemId()) {
@@ -280,8 +292,19 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     }
 
     @Override
+    public void onRowLongClick(RowViewHolder viewHolder) {
+        setSelectMode(true);
+        setSelected(viewHolder);
+    }
+
+    @Override
     public void onTextViewClick(RowViewHolder viewHolder) {
         onRowClick(viewHolder);
+    }
+
+    @Override
+    public void onTextViewLongClick(RowViewHolder viewHolder) {
+        onRowLongClick(viewHolder);
     }
 
     @Override
