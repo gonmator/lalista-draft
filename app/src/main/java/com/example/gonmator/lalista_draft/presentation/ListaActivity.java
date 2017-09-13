@@ -32,10 +32,11 @@ public class ListaActivity extends AppCompatActivity
         ConfigmDialogFragment.ConfirmDialogListener {
 
     private LaListaDbHelper mDbHelper = null;
+    private Menu mAppMenu = null;
+    private ListaAdapter mAdapter = null;
     private long mRootId = -1;
     private long mCurrentId = -1;
     private int mDeep = 0;
-    private Menu mAppMenu = null;
     private boolean mEditMode = false;
     private boolean mSelectMode = false;
 
@@ -113,9 +114,9 @@ public class ListaActivity extends AppCompatActivity
 
         // list view
         final RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-        ListaAdapter listAdapter = new ListaAdapter(this, this, R.layout.row_lista, null);
-        listView.setAdapter(listAdapter);
-        updateList(listAdapter);
+        mAdapter = new ListaAdapter(this, this, R.layout.row_lista, null);
+        listView.setAdapter(mAdapter);
+        updateList();
     }
 
     @Override
@@ -133,9 +134,6 @@ public class ListaActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        RecyclerView listView;
-        ListaAdapter adapter;
-
         switch (item.getItemId()) {
             case android.R.id.home:
                 goBack();
@@ -148,9 +146,7 @@ public class ListaActivity extends AppCompatActivity
                 return true;
             case R.id.action_delete:
                 if (mSelectMode) {
-                    listView = (RecyclerView)findViewById(R.id.listView);
-                    adapter = (ListaAdapter)listView.getAdapter();
-                    Collection<Long> selected = adapter.getSelectedIds();
+                    Collection<Long> selected = mAdapter.getSelectedIds();
                     confirmDelete(selected);
                 } else {
                     confirmDelete(mCurrentId);
@@ -232,19 +228,15 @@ public class ListaActivity extends AppCompatActivity
                 oldCurrentId = -1;
             }
         }
-        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-        ListaAdapter adapter = (ListaAdapter) listView.getAdapter();
-        adapter.clearSelected();
+        mAdapter.clearSelected();
         setSelectMode(false);
         if (oldCurrentId != mCurrentId) {
-            updateList(adapter);
+            updateList();
         }
     }
 
     boolean deleteSelected() {
-        RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
-        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-        Collection<Long> selected = adapter.getSelectedIds();
+        Collection<Long> selected = mAdapter.getSelectedIds();
         if (selected.size() > 0) {
             confirmDelete(selected);
             return true;
@@ -269,20 +261,13 @@ public class ListaActivity extends AppCompatActivity
 
     void newList(String description) {
         if (description.length() > 0) {
-            RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
-            ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
             Lista lista = new Lista(description);
             mDbHelper.createLista(lista, mCurrentId);
-            updateList(adapter);
+            updateList();
         }
     }
 
     void updateList() {
-        RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
-        updateList((ListaAdapter)listView.getAdapter());
-    }
-
-    void updateList(ListaAdapter adapter) {
         Toolbar listBar = (Toolbar)findViewById(R.id.listBar);
         ActionBar actionBar = getSupportActionBar();
         if (mCurrentId != mRootId) {
@@ -303,37 +288,25 @@ public class ListaActivity extends AppCompatActivity
             }
         }
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
-        adapter.changeCursor(childs);
+        mAdapter.changeCursor(childs);
     }
 
     boolean selectAll() {
-        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-        int selected = adapter.selectAll();
+        int selected = mAdapter.selectAll();
         return selected > 0;
     }
 
     void setEditMode(boolean editMode) {
-        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-        setEditMode(editMode, adapter);
-    }
-    void setEditMode(boolean editMode, ListaAdapter adapter) {
         mEditMode = editMode;
-        adapter.setEditMode(editMode);
+        mAdapter.setEditMode(editMode);
         if (mEditMode) {
-            setSelectMode(false, adapter);
+            setSelectMode(false);
         }
         invalidateOptionsMenu();
     }
 
     void setSelectMode(boolean selectMode) {
-        RecyclerView listView = (RecyclerView) findViewById(R.id.listView);
-        ListaAdapter adapter = (ListaAdapter)listView.getAdapter();
-        setSelectMode(selectMode, adapter);
-    }
-    void setSelectMode(boolean selectMode, ListaAdapter adapter) {
-        adapter.setSelectMode(selectMode);
+        mAdapter.setSelectMode(selectMode);
         invalidateOptionsMenu();
     }
 
