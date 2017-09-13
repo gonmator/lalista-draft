@@ -284,15 +284,22 @@ public class ListaActivity extends AppCompatActivity
 
     void updateList(ListaAdapter adapter) {
         Toolbar listBar = (Toolbar)findViewById(R.id.listBar);
+        ActionBar actionBar = getSupportActionBar();
         if (mCurrentId != mRootId) {
             if (listBar != null) {
                 listBar.setTitle(mDbHelper.getLista(mCurrentId).getDescription());
-                listBar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+                if (actionBar != null) {
+                    actionBar.setDisplayHomeAsUpEnabled(true);
+                }
+                // listBar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
             }
         } else {
             if (listBar != null) {
                 listBar.setTitle(R.string.app_name);
-                listBar.setNavigationIcon(null);
+                if (actionBar != null) {
+                    actionBar.setDisplayHomeAsUpEnabled(false);
+                }
+                // listBar.setNavigationIcon(null);
             }
         }
         Cursor childs = mDbHelper.getListasOf(mCurrentId);
