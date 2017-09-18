@@ -38,7 +38,7 @@ public class ListaActivity extends AppCompatActivity
     private long mCurrentId = -1;
     private int mDeep = 0;
     private boolean mEditMode = false;
-    private boolean mSelectMode = false;
+    private ListaAdapter.SelectMode mSelectMode;
 
 
     // Activity
@@ -59,7 +59,7 @@ public class ListaActivity extends AppCompatActivity
         mRootId = mDbHelper.getRootId();
         mCurrentId = mRootId;
         mEditMode = false;
-        mSelectMode = false;
+        mSelectMode = ListaAdapter.SelectMode.disabled;
 
         // check DB consistence
         // int fixed = mDbHelper.fixOrphans(mRootId);
@@ -84,15 +84,19 @@ public class ListaActivity extends AppCompatActivity
         selectBar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                setSelectMode(false);
+                setSelectMode(ListaAdapter.SelectMode.disabled);
             }
         });
         selectBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.action_delete:
-                        return deleteSelected();
+                    case R.id.action_copy:
+                        return copySelected();
+                    case R.id.action_cut:
+                        return cutSelected();
+                    case R.id.action_paste:
+                        return confirmPaste();
                     case R.id.action_select_all:
                         return selectAll();
                 }
@@ -145,7 +149,7 @@ public class ListaActivity extends AppCompatActivity
                 toggleSelectMode();
                 return true;
             case R.id.action_delete:
-                if (mSelectMode) {
+                if (mSelectMode != ListaAdapter.SelectMode.disabled) {
                     Collection<Long> selected = mAdapter.getSelectedIds();
                     confirmDelete(selected);
                 } else {
@@ -169,6 +173,18 @@ public class ListaActivity extends AppCompatActivity
         textView.setText("");
     }
 
+    void confirmAction(Bundle context, String tag, int titleId, int messageId, int actionId) {
+        ConfigmDialogFragment confirmDialog = new ConfigmDialogFragment();
+        Bundle arguments = new Bundle(3);
+        Resources resources = getResources();
+        arguments.putCharSequence("title", resources.getString(titleId));
+        arguments.putCharSequence("message", resources.getString(messageId));
+        arguments.putCharSequence("action", resources.getString(actionId));
+        arguments.putBundle("context", context);
+        confirmDialog.setArguments(arguments);
+        confirmDialog.show(getSupportFragmentManager(), tag);
+    }
+
     void confirmDelete(long id) {
         Bundle context = new Bundle(1);
         context.putLong("id", id);
@@ -185,14 +201,55 @@ public class ListaActivity extends AppCompatActivity
         confirmDelete(context, R.string.action_confirm_delete_selected);
     }
     void confirmDelete(Bundle context, int strId) {
-        ConfigmDialogFragment confirmDialog = new ConfigmDialogFragment();
-        Bundle arguments = new Bundle(3);
-        Resources resources = getResources();
-        arguments.putCharSequence("title", resources.getString(R.string.action_delete));
-        arguments.putCharSequence("message", resources.getString(strId));
-        arguments.putBundle("context", context);
-        confirmDialog.setArguments(arguments);
-        confirmDialog.show(getSupportFragmentManager(), "delete_list");
+        confirmAction(context, "delete_list", R.string.action_delete, strId, R.string.action_delete);
+    }
+
+    boolean confirmPaste() {
+        Collection<Long> ids = mAdapter.getSelectedIds();
+        ListaAdapter.SelectMode sm = mAdapter.getSelectMode();
+        if (sm == ListaAdapter.SelectMode.copying) {
+            confirmPaste(
+                    ids, "copy", R.string.action_confirm_copy_paste, R.string.action_copy);
+        } else if (sm == ListaAdapter.SelectMode.cutting) {
+            confirmPaste(
+                    ids, "move", R.string.action_confirm_cut_paste, R.string.action_move);
+        }
+        return true;
+    }
+    void confirmPaste(Collection<Long> ids, String tag, int messageId, int actionId) {
+        Bundle context = new Bundle(2);
+        long[] idArray = new long[ids.size()];
+        int i = 0;
+        for (long id: ids) {
+            idArray[i++] = id;
+        }
+        context.putLongArray("ids", idArray);
+        confirmAction(context, tag, actionId, messageId, actionId);
+        mAdapter.setSelectMode(ListaAdapter.SelectMode.disabled);
+    }
+
+    void copyList(long id, long tgtId) {
+        List<Long> ancestors = mDbHelper.getIdOfAncestors(tgtId);
+        if (!ancestors.contains(id)) {
+
+        }
+    }
+
+    void copyLists(long[] ids, long tgtId) {
+        for (long id: ids) {
+            copyList(id, tgtId);
+        }
+        updateList();
+    }
+
+    boolean copySelected() {
+        mAdapter.setSelectMode(ListaAdapter.SelectMode.copying);
+        return true;
+    }
+
+    boolean cutSelected() {
+        mAdapter.setSelectMode(ListaAdapter.SelectMode.cutting);
+        return true;
     }
 
     void deleteList(long id) {
@@ -229,7 +286,7 @@ public class ListaActivity extends AppCompatActivity
             }
         }
         mAdapter.clearSelected();
-        setSelectMode(false);
+        setSelectMode(ListaAdapter.SelectMode.disabled);
         if (oldCurrentId != mCurrentId) {
             updateList();
         }
@@ -257,6 +314,23 @@ public class ListaActivity extends AppCompatActivity
             updateList();
         }
         return rv;
+    }
+
+    void moveList(long id, long tgtId) {
+        if (id == tgtId) {
+            return;
+        }
+        List<Long> ancestors = mDbHelper.getIdOfAncestors(tgtId);
+        if (!ancestors.contains(id)) {
+            mDbHelper.updateListaParent(id, tgtId);
+        }
+    }
+
+    void moveLists(long[] ids, long tgtId) {
+        for (long id: ids) {
+            moveList(id, tgtId);
+        }
+        updateList();
     }
 
     void newList(String description) {
@@ -300,12 +374,12 @@ public class ListaActivity extends AppCompatActivity
         mEditMode = editMode;
         mAdapter.setEditMode(editMode);
         if (mEditMode) {
-            setSelectMode(false);
+            setSelectMode(ListaAdapter.SelectMode.disabled);
         }
         invalidateOptionsMenu();
     }
 
-    void setSelectMode(boolean selectMode) {
+    void setSelectMode(ListaAdapter.SelectMode selectMode) {
         mAdapter.setSelectMode(selectMode);
         invalidateOptionsMenu();
     }
@@ -315,7 +389,8 @@ public class ListaActivity extends AppCompatActivity
     }
 
     void toggleSelectMode() {
-        setSelectMode(!mSelectMode);
+        setSelectMode(mSelectMode == ListaAdapter.SelectMode.disabled ?
+                ListaAdapter.SelectMode.selecting : ListaAdapter.SelectMode.disabled);
     }
 
 
@@ -342,6 +417,16 @@ public class ListaActivity extends AppCompatActivity
                 long oldCurrentId = mCurrentId;
                 deleteLists(context.getLongArray("ids"));
             }
+        } else if (tag.equals("copy") && context != null) {
+            if (context.containsKey("ids")) {
+                long[] ids = context.getLongArray("ids");
+                copyLists(ids, mCurrentId);
+            }
+        } else if (tag.equals("move") && context != null) {
+            if (context.containsKey("ids")) {
+                long[] ids = context.getLongArray("ids");
+                moveLists(ids, mCurrentId);
+            }
         }
     }
 
@@ -356,7 +441,7 @@ public class ListaActivity extends AppCompatActivity
 
     @Override
     public void onEnterSelectMode() {
-        mSelectMode = true;
+        mSelectMode = ListaAdapter.SelectMode.selecting;
         Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
         selectBar.setVisibility(View.VISIBLE);
         setEditMode(false);
@@ -365,7 +450,7 @@ public class ListaActivity extends AppCompatActivity
 
     @Override
     public void onExitSelectMode() {
-        mSelectMode = false;
+        mSelectMode = ListaAdapter.SelectMode.disabled;
         Toolbar selectBar = (Toolbar)findViewById(R.id.selectBar);
         selectBar.setVisibility(View.GONE);
         invalidateOptionsMenu();

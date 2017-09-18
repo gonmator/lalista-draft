@@ -36,9 +36,10 @@ public class ConfigmDialogFragment extends AppCompatDialogFragment {
         final Bundle arguments = getArguments();
         String title = arguments.getString("title");
         String message = arguments.getString("message");
+        String action = arguments.getString("action");
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(title).setMessage(message);
-        builder.setPositiveButton(R.string.action_delete, new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(action, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 mListener.onConfirmedClick(getTag(), arguments.getBundle("context"));
                 dismiss();

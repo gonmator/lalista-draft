@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -85,16 +86,12 @@ public class RowViewHolder extends RecyclerView.ViewHolder implements
         mActionButton.setImageResource(resId);
     }
 
-    void setAttached(boolean attached) {
-        mAttached = attached;
+    void setActionButtonVisibility(int visibility) {
+        mActionButton.setVisibility(visibility);
     }
 
-    void setSelectedState(boolean selected) {
-        if (selected) {
-            itemView.setBackgroundResource(R.color.colorAccent);
-        } else {
-            itemView.setBackgroundResource(R.color.colorBackgroundDark);
-        }
+    void setAttached(boolean attached) {
+        mAttached = attached;
     }
 
     void setBackgroundResource(int resourceId) {
@@ -106,14 +103,12 @@ public class RowViewHolder extends RecyclerView.ViewHolder implements
         mTextView.setText(text);
     }
 
-    void setListaId(long id) {
-        mListaId = id;
+    void setMargins(int left, int top, int right, int bottom) {
+        ViewGroup.MarginLayoutParams params =
+                (ViewGroup.MarginLayoutParams)itemView.getLayoutParams();
+        params.setMargins(left, top, right, bottom);
+        itemView.requestLayout();
     }
-
-    void setActionButtonVisibility(int visibility) {
-        mActionButton.setVisibility(visibility);
-    }
-
 
     // OnClickListener
     @Override

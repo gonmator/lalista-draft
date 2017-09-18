@@ -93,8 +93,12 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
             try {
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     long id = c.getLong(0);
-                    long root = getRootOf(db, id);
-                    if (root != -1) {
+                    long root = -1;
+                    try {
+                        root = getRootOf(db, id);
+                    } catch (Exception e) {
+                    }
+                    if (root != mRootId) {
                         rv.add(id);
                     }
                 }
@@ -113,8 +117,13 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
             try {
                 for (cAll.moveToFirst(); !cAll.isAfterLast(); cAll.moveToNext()) {
                     long id = cAll.getLong(0);
-                    long ancestor = getRootOf(db, id);
-                    if (ancestor != -1) {
+                    long ancestor = -1;
+                    try {
+                        ancestor = getRootOf(db, id);
+                    } catch (Exception e) {
+                        ;
+                    }
+                    if (ancestor != mRootId) {
                         ContentValues values = new ContentValues();
                         values.put(KEY_PARENT_ID, root);
                         count += db.update(TABLE_LISTA, values, PARENT_ID_SELECTION,
@@ -144,7 +153,11 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
     public List<Long> getIdOfAncestors(long id) {
         List<Long> ancestors = new Vector<Long>();
         SQLiteDatabase db = getReadableDatabase();
-        feedUpAncestors(db, id, ancestors);
+        try {
+            feedUpAncestors(db, id, ancestors);
+        } catch (Exception e) {
+            ;
+        }
         return ancestors;
     }
 
@@ -236,6 +249,33 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         }
     }
 
+    public int updateListaParent(long id, long newParent) {
+        if (id == newParent) {
+            return -1;
+        }
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor c = db.query(TABLE_LISTA, ID_COLUMNS, ID_SELECTION,
+                new String[] { String.valueOf(newParent) }, null, null, null, "1");
+        try {
+            if (c.getCount() == 0) {
+                return -1;
+            }
+        } catch (Throwable e) {
+            return -1;
+        } finally {
+            c.close();
+        }
+        ContentValues values = new ContentValues();
+        values.put(KEY_PARENT_ID, newParent);
+        try {
+            int updated = db.update(TABLE_LISTA, values, ID_SELECTION,
+                    new String[]{ String.valueOf(id) });
+            return updated;
+        } catch (Throwable e) {
+            return -1;
+        }
+    }
+
     public int deleteLista(long id) {
         SQLiteDatabase db = getWritableDatabase();
         return deleteLista(db, id);
@@ -277,8 +317,12 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         return count;
     }
 
-    private void feedUpAncestors(SQLiteDatabase db, long id, List<Long> ancestors) {
+    private void feedUpAncestors(SQLiteDatabase db, long id, List<Long> ancestors)
+            throws Exception {
         long parent = getParentOf(db, id);
+        if (ancestors.contains(parent)) {
+            throw new Exception("ancestor circular reference");
+        }
         if (parent != -1) {
             ancestors.add(parent);
             feedUpAncestors(db, parent, ancestors);
@@ -339,24 +383,9 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
                 c.getString(c.getColumnIndex(KEY_ATTRIBUTES)));
     }
 
-    private long getRootOf(SQLiteDatabase db, long id) {
-        Cursor c = db.query(TABLE_LISTA, PARENT_ID_COLUMNS, ID_SELECTION,
-                new String[] { String.valueOf(id)}, null, null, null, "1");
-        if (c != null) {
-            try {
-                c.moveToFirst();
-                if (c.isAfterLast()) {
-                    return id;
-                }
-                long parentId = c.getLong(0);
-                if (parentId != -1) {
-                    return getRootOf(db, parentId);
-                }
-                return -1;
-            } finally {
-                c.close();
-            }
-        }
-        return id;
+    private long getRootOf(SQLiteDatabase db, long id) throws Exception {
+        Vector<Long> ancestors = new Vector<Long>();
+        feedUpAncestors(db, id, ancestors);
+        return ancestors.lastElement();
     }
 }

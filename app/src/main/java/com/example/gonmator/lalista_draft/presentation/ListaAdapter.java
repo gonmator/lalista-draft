@@ -6,6 +6,7 @@ import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,13 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         void onSelectedItemsChanged(int selectedCount);
     }
 
+    public enum SelectMode {
+        disabled,
+        selecting,
+        cutting,
+        copying
+    };
+
     private final int EDIT_MODE_ON = 1;
     private final int EDIT_MODE_OFF = 2;
     private final int SELECT_MODE_ON = 3;
@@ -40,6 +48,7 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     private final int SELECT = 7;
     private final int UNSELECT=8;
 
+    private Context mContext;
     private Cursor mCursor;
     private int mIdColumn;
     private int mDescriptionColumn;
@@ -48,7 +57,7 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     private Listener mListener;
     private ArraySet<Long> mSelected;
     private boolean mEditMode;
-    private boolean mSelectMode;
+    private SelectMode mSelectMode;
     private long mEditing;
 
     // ListaAdapter
@@ -57,14 +66,15 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
             @NonNull Context context, @NonNull Listener listener, @LayoutRes int layoutId,
             Cursor cursor) {
         super();
+        mContext = context;
         mCursor = null;
         changeCursor(cursor);
         mListener = listener;
-        mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mInflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mLayoutId = layoutId;
         mSelected = new ArraySet<>();
         mEditMode = false;
-        mSelectMode = false;
+        mSelectMode = SelectMode.disabled;
         mEditing = -1;
         setHasStableIds(true);
     }
@@ -88,6 +98,10 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         mSelected.clear();
     }
 
+    public SelectMode getSelectMode() {
+        return mSelectMode;
+    }
+
     public void setSelected(RowViewHolder viewHolder) {
         long id = viewHolder.getItemId();
         mSelected.add(id);
@@ -96,6 +110,9 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     }
 
     public void toggleSelected(RowViewHolder viewHolder) {
+        if (mSelectMode != SelectMode.selecting) {
+            setSelectMode(SelectMode.selecting);
+        }
         long id = viewHolder.getItemId();
         if (mSelected.contains(id)) {
             mSelected.remove(id);
@@ -112,16 +129,16 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     }
 
     public int selectAll() {
-        if (mSelectMode) {
-            for (int position = 0; position < getItemCount(); position++) {
-                long id = getItemId(position);
-                mSelected.add(id);
-            }
-            notifyItemRangeChanged(0, getItemCount(), SELECT);
-            mListener.onSelectedItemsChanged(mSelected.size());
-            return getItemCount();
+        if (mSelectMode != SelectMode.selecting) {
+            setSelectMode(SelectMode.selecting);
         }
-        return 0;
+        for (int position = 0; position < getItemCount(); position++) {
+            long id = getItemId(position);
+            mSelected.add(id);
+        }
+        notifyItemRangeChanged(0, getItemCount(), SELECT);
+        mListener.onSelectedItemsChanged(mSelected.size());
+        return getItemCount();
     }
 
     public void setEditMode(boolean editMode) {
@@ -132,17 +149,19 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         }
     }
 
-    public void setSelectMode(boolean selectMode) {
-        boolean prevSelectMode = mSelectMode;
+    public void setSelectMode(SelectMode selectMode) {
+        SelectMode prevSelectMode = mSelectMode;
         mSelectMode = selectMode;
         if (prevSelectMode != selectMode) {
-            mSelected.clear();
-            mListener.onSelectedItemsChanged(0);
+            if (mSelectMode == SelectMode.disabled) {
+                mSelected.clear();
+                mListener.onSelectedItemsChanged(0);
+            }
             notifyItemRangeChanged(0, getItemCount(),
-                    mSelectMode ? SELECT_MODE_ON : SELECT_MODE_OFF);
-            if (mSelectMode) {
+                    mSelectMode == SelectMode.disabled ? SELECT_MODE_OFF : SELECT_MODE_ON);
+            if (mSelectMode == SelectMode.selecting) {
                 mListener.onEnterSelectMode();
-            } else {
+            } else if (mSelectMode == SelectMode.disabled) {
                 mListener.onExitSelectMode();
             }
         }
@@ -159,16 +178,15 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     @Override
     public void onBindViewHolder(RowViewHolder holder, int position) {
         final long id = getItemId(position);
-        holder.setListaId(id);
         holder.setDescriptionText(mCursor.getString(mDescriptionColumn));
         if (mEditMode) {
             holder.selectEditText();
         } else {
             holder.selectTextView();
         }
-        holder.setSelectedState(mSelectMode && mSelected.contains(id));
-        if (mEditMode || mSelectMode) {
-            if (mSelectMode || id != mEditing) {
+        setSelectedState(holder, mSelectMode != SelectMode.disabled && mSelected.contains(id));
+        if (mEditMode || mSelectMode != SelectMode.disabled) {
+            if (mSelectMode != SelectMode.disabled || id != mEditing) {
                 holder.setActionButtonImage(R.drawable.ic_arrow_forward_white_24dp);
             } else {
                 holder.setActionButtonImage(R.drawable.ic_done_white_24dp);
@@ -214,11 +232,11 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
                     holder.setActionButtonVisibility(View.GONE);
                     break;
                 case SELECT_MODE_ON:
-                    holder.setSelectedState(mSelected.contains(holder.getItemId()));
+                    setSelectedState(holder, mSelected.contains(holder.getItemId()));
                     holder.setActionButtonVisibility(View.VISIBLE);
                     break;
                 case SELECT_MODE_OFF:
-                    holder.setSelectedState(false);
+                    setSelectedState(holder, false);
                     holder.setActionButtonVisibility(View.GONE);
                     break;
                 case ENTER_EDITING:
@@ -232,12 +250,12 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
                     }
                     break;
                 case SELECT:
-                    if (mSelectMode) {
-                        holder.setSelectedState(true);
+                    if (mSelectMode != SelectMode.disabled) {
+                        setSelectedState(holder, true);
                     }
                     break;
                 case UNSELECT:
-                    holder.setSelectedState(false);
+                    setSelectedState(holder, false);
                     break;
             }
         }
@@ -284,7 +302,7 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
 
     @Override
     public void onRowClick(RowViewHolder viewHolder) {
-        if (mSelectMode) {
+        if (mSelectMode != SelectMode.disabled) {
             toggleSelected(viewHolder);
         } else {
             mListener.onSubitemsButtonClick(viewHolder.getItemId());
@@ -293,7 +311,7 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
 
     @Override
     public void onRowLongClick(RowViewHolder viewHolder) {
-        setSelectMode(true);
+        setSelectMode(SelectMode.selecting);
         setSelected(viewHolder);
     }
 
@@ -311,5 +329,31 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
     public void onTextChanged(RowViewHolder viewHolder) {
         mListener.onItemTextUpdated(viewHolder.getItemId(),
                 viewHolder.getDescriptionText().toString());
+    }
+
+
+    // private functions
+
+    int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, dp, mContext.getResources().getDisplayMetrics());
+    }
+
+    void setSelectedState(RowViewHolder holder, boolean selected) {
+        if (selected) {
+            if (mSelectMode == SelectMode.cutting) {
+                holder.setBackgroundResource(R.color.colorAccentTrans);
+            } else {
+                holder.setBackgroundResource(R.color.colorAccent);
+            }
+            if (mSelectMode == SelectMode.copying || mSelectMode == SelectMode.cutting) {
+                holder.setMargins(dpToPx(2), dpToPx(3), dpToPx(2), dpToPx(3));
+            } else {
+                holder.setMargins(dpToPx(4), dpToPx(1), dpToPx(4), dpToPx(1));
+            }
+        } else {
+            holder.setBackgroundResource(R.color.colorBackgroundDark);
+            holder.setMargins(dpToPx(4), dpToPx(1), dpToPx(4), dpToPx(1));
+        }
     }
 }
