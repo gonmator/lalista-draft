@@ -8,21 +8,15 @@
         app:showAsAction="always"
         />
     <item
-        android:id="@+id/action_cut"
-        android:icon="@drawable/ic_content_cut_black_24dp"
-        android:title="@string/action_cut"
+        android:id="@+id/action_move"
+        android:icon="@drawable/ic_move_black_24dp"
+        android:title="@string/action_move"
         app:showAsAction="always"
         />
     <item
         android:id="@+id/action_copy"
         android:icon="@drawable/ic_content_copy_black_24dp"
         android:title="@string/action_copy"
-        app:showAsAction="always"
-        />
-    <item
-        android:id="@+id/action_paste"
-        android:icon="@drawable/ic_content_paste_black_24dp"
-        android:title="@string/action_paste"
         app:showAsAction="always"
         />
 

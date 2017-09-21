@@ -92,11 +92,9 @@ public class ListaActivity extends AppCompatActivity
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_copy:
-                        return copySelected();
-                    case R.id.action_cut:
-                        return cutSelected();
-                    case R.id.action_paste:
-                        return confirmPaste();
+                        return confirmCopyHere();
+                    case R.id.action_move:
+                        return confirmMoveHere();
                     case R.id.action_select_all:
                         return selectAll();
                 }
@@ -200,23 +198,32 @@ public class ListaActivity extends AppCompatActivity
         context.putLongArray("ids", idArray);
         confirmDelete(context, R.string.action_confirm_delete_selected);
     }
+
+    boolean confirmCopyHere() {
+        Collection<Long> ids = mAdapter.getSelectedIds();
+        ListaAdapter.SelectMode sm = mAdapter.getSelectMode();
+        if (sm == ListaAdapter.SelectMode.selecting) {
+            confirmActionHere(
+                    ids, "copy", R.string.action_confirm_copy_here, R.string.action_copy);
+        }
+        return true;
+    }
+
     void confirmDelete(Bundle context, int strId) {
         confirmAction(context, "delete_list", R.string.action_delete, strId, R.string.action_delete);
     }
 
-    boolean confirmPaste() {
+    boolean confirmMoveHere() {
         Collection<Long> ids = mAdapter.getSelectedIds();
         ListaAdapter.SelectMode sm = mAdapter.getSelectMode();
-        if (sm == ListaAdapter.SelectMode.copying) {
-            confirmPaste(
-                    ids, "copy", R.string.action_confirm_copy_paste, R.string.action_copy);
-        } else if (sm == ListaAdapter.SelectMode.cutting) {
-            confirmPaste(
-                    ids, "move", R.string.action_confirm_cut_paste, R.string.action_move);
+        if (sm == ListaAdapter.SelectMode.selecting) {
+            confirmActionHere(
+                    ids, "move", R.string.action_confirm_move_here, R.string.action_move);
         }
         return true;
     }
-    void confirmPaste(Collection<Long> ids, String tag, int messageId, int actionId) {
+
+    void confirmActionHere(Collection<Long> ids, String tag, int messageId, int actionId) {
         Bundle context = new Bundle(2);
         long[] idArray = new long[ids.size()];
         int i = 0;
@@ -240,16 +247,6 @@ public class ListaActivity extends AppCompatActivity
             copyList(id, tgtId);
         }
         updateList();
-    }
-
-    boolean copySelected() {
-        mAdapter.setSelectMode(ListaAdapter.SelectMode.copying);
-        return true;
-    }
-
-    boolean cutSelected() {
-        mAdapter.setSelectMode(ListaAdapter.SelectMode.cutting);
-        return true;
     }
 
     void deleteList(long id) {
