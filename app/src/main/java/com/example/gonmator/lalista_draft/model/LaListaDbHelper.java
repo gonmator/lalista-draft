@@ -193,6 +193,26 @@ public class LaListaDbHelper extends SQLiteOpenHelper {
         // todo: throw exception ?
         return lista;
     }
+
+    public List<Long> getListasIdOf(long parentId) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor c = db.query(TABLE_LISTA, ID_COLUMNS, PARENT_ID_SELECTION,
+                new String[]{String.valueOf(parentId)}, null, null, null);
+        try {
+            c.moveToFirst();
+            Vector<Long> idList = new Vector<>(c.getCount());
+            for (; !c.isAfterLast(); c.moveToNext()) {
+                idList.add(c.getLong(0));
+            }
+            return idList;
+        } catch (Exception e) {
+            return new Vector<>();
+        } finally {
+            c.close();
+        }
+    }
+
     public Cursor getListasOf(long parentId) {
         SQLiteDatabase db = getReadableDatabase();
         return db.query(TABLE_LISTA, LISTA_ID_COLUMNS, PARENT_ID_SELECTION,

@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -183,6 +184,30 @@ public class ListaActivity extends AppCompatActivity
         confirmDialog.show(getSupportFragmentManager(), tag);
     }
 
+    void confirmActionHere(Collection<Long> ids, String tag, int messageId, int actionId) {
+        List<Long> ancestors = mDbHelper.getIdOfAncestors(mCurrentId);
+        for (Long id: ids) {
+            if (id == mCurrentId) {
+                showCancelledActionHere(R.string.action_here_cancelled);
+                return;
+            }
+            if (ancestors.contains(id)) {
+                showCancelledActionHere(R.string.action_here_cancelled);
+                return;
+            }
+        }
+
+        Bundle context = new Bundle(2);
+        long[] idArray = new long[ids.size()];
+        int i = 0;
+        for (long id: ids) {
+            idArray[i++] = id;
+        }
+        context.putLongArray("ids", idArray);
+        confirmAction(context, tag, actionId, messageId, actionId);
+        mAdapter.setSelectMode(ListaAdapter.SelectMode.disabled);
+    }
+
     void confirmDelete(long id) {
         Bundle context = new Bundle(1);
         context.putLong("id", id);
@@ -223,22 +248,13 @@ public class ListaActivity extends AppCompatActivity
         return true;
     }
 
-    void confirmActionHere(Collection<Long> ids, String tag, int messageId, int actionId) {
-        Bundle context = new Bundle(2);
-        long[] idArray = new long[ids.size()];
-        int i = 0;
-        for (long id: ids) {
-            idArray[i++] = id;
-        }
-        context.putLongArray("ids", idArray);
-        confirmAction(context, tag, actionId, messageId, actionId);
-        mAdapter.setSelectMode(ListaAdapter.SelectMode.disabled);
-    }
-
     void copyList(long id, long tgtId) {
-        List<Long> ancestors = mDbHelper.getIdOfAncestors(tgtId);
-        if (!ancestors.contains(id)) {
-
+        Lista lista = mDbHelper.getLista(id);
+        Lista newLista = lista.makeCopy();
+        long newId = mDbHelper.createLista(newLista, tgtId);
+        List<Long> childIds = mDbHelper.getListasIdOf(id);
+        for (long childId: childIds) {
+            copyList(childId, newId);
         }
     }
 
@@ -313,19 +329,9 @@ public class ListaActivity extends AppCompatActivity
         return rv;
     }
 
-    void moveList(long id, long tgtId) {
-        if (id == tgtId) {
-            return;
-        }
-        List<Long> ancestors = mDbHelper.getIdOfAncestors(tgtId);
-        if (!ancestors.contains(id)) {
-            mDbHelper.updateListaParent(id, tgtId);
-        }
-    }
-
     void moveLists(long[] ids, long tgtId) {
         for (long id: ids) {
-            moveList(id, tgtId);
+            mDbHelper.updateListaParent(id, tgtId);
         }
         updateList();
     }
@@ -379,6 +385,10 @@ public class ListaActivity extends AppCompatActivity
     void setSelectMode(ListaAdapter.SelectMode selectMode) {
         mAdapter.setSelectMode(selectMode);
         invalidateOptionsMenu();
+    }
+
+    void showCancelledActionHere(int textId) {
+        Snackbar.make(findViewById(R.id.listView), textId, Snackbar.LENGTH_SHORT).show();
     }
 
     void toggleEditMode() {

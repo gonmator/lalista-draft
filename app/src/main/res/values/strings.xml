@@ -23,4 +23,5 @@
     <string name="action_paste">Paste</string>
     <string name="action_confirm_copy_here">Copy selected lists here?</string>
     <string name="action_confirm_move_here">Move selected lists here?</string>
+    <string name="action_here_cancelled">Lists cannot move to itself</string>
 </resources>

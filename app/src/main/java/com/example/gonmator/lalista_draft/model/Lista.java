@@ -50,4 +50,8 @@ public class Lista {
     public String getAttributesStr() {
         return mAttributes.toString();
     }
+
+    public Lista makeCopy() {
+        return new Lista(mDescription, mAttributes);
+    }
 }
