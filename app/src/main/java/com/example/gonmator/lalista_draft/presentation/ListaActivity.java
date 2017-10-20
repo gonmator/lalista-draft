@@ -32,6 +32,10 @@ public class ListaActivity extends AppCompatActivity
         implements EditListDialogFragment.AddItemDialogListener, ListaAdapter.Listener,
         ConfigmDialogFragment.ConfirmDialogListener {
 
+    private final String CURRENT_ID_KEY = "CURRENT_ID";
+    private final String EDIT_MODE_KEY = "EDIT_MODE";
+    private final String SELECT_MODE_KEY = "SELECT_MODE";
+
     private LaListaDbHelper mDbHelper = null;
     private Menu mAppMenu = null;
     private ListaAdapter mAdapter = null;
@@ -64,6 +68,13 @@ public class ListaActivity extends AppCompatActivity
 
         // check DB consistence
         // int fixed = mDbHelper.fixOrphans(mRootId);
+
+        // get saved instance state
+        if (savedInstanceState == null) {
+            mCurrentId = mRootId;
+        } else {
+            mCurrentId = savedInstanceState.getLong(CURRENT_ID_KEY);
+        }
 
         //  app bar
         Toolbar appBar = (Toolbar)findViewById(R.id.appbar);
@@ -164,6 +175,21 @@ public class ListaActivity extends AppCompatActivity
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        mAdapter.onRestoreInstanceState(savedInstanceState);
+        setEditMode(savedInstanceState.getBoolean(EDIT_MODE_KEY));
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        mAdapter.onSaveInstanceState(outState);
+        outState.putLong(CURRENT_ID_KEY, mCurrentId);
+        outState.putBoolean(EDIT_MODE_KEY, mEditMode);
+        super.onSaveInstanceState(outState);
     }
 
     public void onAddButtonClick(View view) {

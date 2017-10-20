@@ -2,8 +2,10 @@ package com.example.gonmator.lalista_draft.presentation;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.v4.content.res.TypedArrayUtils;
 import android.support.v4.util.ArraySet;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
@@ -14,6 +16,7 @@ import android.view.ViewGroup;
 import com.example.gonmator.lalista_draft.R;
 import com.example.gonmator.lalista_draft.model.LaListaContract;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,11 +35,25 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         void onSelectedItemsChanged(int selectedCount);
     }
 
+    private final String EDIT_MODE_KEY = "LISTA_ADAPTER.EDIT_MODE";
+    private final String EDITING_KEY = "LISTA_ADAPTER.EDITING";
+    private final String SELECT_MODE_KEY = "LISTA_ADAPTER.SELECT_MODE";
+    private final String SELECTED_KEY = "LISTA_ADAPTER.SELECTED_KEY";
+
     public enum SelectMode {
-        disabled,
-        selecting,
-        cutting,
-        copying
+        disabled(0),
+        selecting(1),
+        cutting(2),
+        copying(3);
+
+        private int mSm;
+        SelectMode(int sm) {
+            mSm = sm;
+        }
+
+        int toInt() {
+            return mSm;
+        }
     };
 
     private final int EDIT_MODE_ON = 1;
@@ -126,6 +143,17 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
 
     public Collection<Long> getSelectedIds() {
         return mSelected;
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+
+    }
+
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(EDIT_MODE_KEY, mEditMode);
+        outState.putLong(EDITING_KEY, mEditing);
+        outState.putInt(SELECT_MODE_KEY, mSelectMode.toInt());
+        outState.putSerializable(SELECTED_KEY, (Serializable)mSelected);
     }
 
     public int selectAll() {
