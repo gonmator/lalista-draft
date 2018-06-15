@@ -153,7 +153,7 @@ public class ListaAdapter extends RecyclerView.Adapter<RowViewHolder>
         outState.putBoolean(EDIT_MODE_KEY, mEditMode);
         outState.putLong(EDITING_KEY, mEditing);
         outState.putInt(SELECT_MODE_KEY, mSelectMode.toInt());
-        outState.putSerializable(SELECTED_KEY, (Serializable)mSelected);
+        // outState.putSerializable(SELECTED_KEY, (Serializable)mSelected);
     }
 
     public int selectAll() {
