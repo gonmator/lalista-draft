@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    android:layout_height="match_parent">
 
     <android.support.design.widget.CoordinatorLayout
-        android:background="@color/colorPrimaryDark"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="0dp"
+        android:background="@color/colorPrimaryDark"
         android:padding="0dp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/editBox"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintVertical_bias="0.0"
-        >
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/selectBar"
@@ -31,29 +28,27 @@
             android:minHeight="?attr/actionBarSize"
             android:navigationIcon="@drawable/ic_close_black_24dp"
             android:titleTextColor="@color/colorText"
-            android:visibility="gone"
-            />
+            android:visibility="gone" />
 
 
         <include
             layout="@layout/app_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
+            android:layout_height="wrap_content" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/listView"
-            android:background="@color/colorPrimary"
-            android:descendantFocusability="afterDescendants"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="0dp"
             android:layout_marginEnd="0dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
+            android:background="@color/colorPrimary"
+            android:descendantFocusability="afterDescendants"
             android:elevation="2dp"
+            android:paddingStart="4dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="8dp"
             android:scrollbars="vertical"
             app:layoutManager="@string/lista_layout_manager_class"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -69,8 +64,7 @@
         android:gravity="bottom"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        />
+        app:layout_constraintRight_toRightOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
 

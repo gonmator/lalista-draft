@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/LaLista-draft.iml" filepath="$PROJECT_DIR$/LaLista-draft.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/lalista-draft.iml" filepath="$PROJECT_DIR$/.idea/modules/lalista-draft.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/lalista-draft.app.unitTest.iml" />
     </modules>
   </component>
 </project>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.gonmator.lalista_draft">
 
     <application
@@ -12,18 +13,20 @@
         <activity
             android:name=".presentation.ListaActivity"
             android:label="@string/app_name"
-            android:theme="@style/LaListaTheme">
+            android:theme="@style/LaListaTheme"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".debug.DebugAllEntries" />
+        <activity android:name=".debug.DebugAllEntries"
+            tools:ignore="Instantiatable" />
         <activity
             android:name=".debug.DebugActivity"
             android:label="@string/title_activity_debug"
-            android:theme="@style/LaListaTheme"></activity>
+            android:theme="@style/LaListaTheme">
+        </activity>
     </application>
 
 </manifest>
